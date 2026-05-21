@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const Tool = require('../models/Tool');
+const Tool = require('../models/tool');
 const { protect, restrictTo } = require('../middleware/auth');
 const { body, validationResult } = require('express-validator');
 

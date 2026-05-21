@@ -1,6 +1,6 @@
 const express = require('express');
-const Tool = require('../models/Tool');
-const Review = require('../models/Review');
+const Tool = require('../models/tool');
+const Review = require('../models/review');
 const { protect } = require('../middleware/auth');
 const router = express.Router();
 
