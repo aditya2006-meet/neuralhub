@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>NeuralHub — Pricing</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+:root{--bg:#080c10;--surface:#0e1318;--border:rgba(255,255,255,0.07);--accent:#00e5b0;--accent2:#4f8fff;--accent3:#ff6b6b;--text:#e8edf2;--muted:#6b7a8d;--r:16px}
+*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:1rem 3rem;background:rgba(8,12,16,0.9);backdrop-filter:blur(16px);border-bottom:1px solid var(--border)}
+.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.3rem;color:var(--text);text-decoration:none}.logo span{color:var(--accent)}
+.nav-links{display:flex;gap:2rem;list-style:none}.nav-links a{color:var(--muted);text-decoration:none;font-size:.9rem;transition:color .2s}.nav-links a:hover,.nav-links a.active{color:var(--text)}
+.nav-right{display:flex;gap:.75rem;align-items:center}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--muted);padding:.5rem 1.2rem;border-radius:100px;font-size:.88rem;cursor:pointer;font-family:'DM Sans',sans-serif;text-decoration:none;display:inline-block}
+.btn-accent{background:var(--accent);color:#080c10;padding:.5rem 1.4rem;border-radius:100px;font-size:.88rem;font-weight:500;border:none;cursor:pointer;font-family:'DM Sans',sans-serif}
+.user-pill{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:100px;padding:.4rem 1rem .4rem .5rem;cursor:pointer;position:relative}
+.user-avatar{width:28px;height:28px;border-radius:50%;background:rgba(0,229,176,.2);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:600}
+.user-dropdown{position:absolute;top:calc(100% + 8px);right:0;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:.5rem;min-width:180px;display:none;z-index:200}
+.user-pill:hover .user-dropdown{display:block}
+.user-dropdown a,.user-dropdown button{display:block;width:100%;text-align:left;padding:.5rem .85rem;font-size:.85rem;color:var(--muted);text-decoration:none;background:none;border:none;cursor:pointer;border-radius:8px;font-family:'DM Sans',sans-serif;transition:all .15s}
+.user-dropdown a:hover,.user-dropdown button:hover{background:rgba(255,255,255,.05);color:var(--text)}
+.logout-btn{color:var(--accent3)!important}
+
+.page{padding:8rem 3rem 5rem;max-width:1100px;margin:0 auto;text-align:center}
+.page-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(0,229,176,.1);border:1px solid rgba(0,229,176,.25);border-radius:100px;padding:.35rem 1rem;font-size:.8rem;color:var(--accent);margin-bottom:1.5rem}
+.page-title{font-family:'Syne',sans-serif;font-size:clamp(2.2rem,4vw,3.5rem);font-weight:800;letter-spacing:-.03em;margin-bottom:1rem}
+.page-sub{color:var(--muted);font-size:1rem;max-width:480px;margin:0 auto 3rem;font-weight:300}
+
+.toggle-row{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:3rem}
+.toggle-label{font-size:.9rem;color:var(--muted)}
+.toggle-label.active{color:var(--text);font-weight:500}
+.toggle{position:relative;width:44px;height:24px}
+.toggle input{opacity:0;width:0;height:0}
+.slider{position:absolute;inset:0;background:var(--border);border-radius:24px;cursor:pointer;transition:.2s}
+.slider:before{content:'';position:absolute;width:18px;height:18px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.2s}
+.toggle input:checked+.slider{background:var(--accent)}
+.toggle input:checked+.slider:before{transform:translateX(20px)}
+.save-badge{background:rgba(0,229,176,.1);color:var(--accent);font-size:.72rem;padding:.2rem .6rem;border-radius:100px;border:1px solid rgba(0,229,176,.2)}
+
+.pricing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.25rem;margin-bottom:4rem}
+.pc{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:2rem;position:relative;text-align:left;transition:border-color .2s}
+.pc.featured{border-color:rgba(0,229,176,.35);background:linear-gradient(160deg,rgba(0,229,176,.07) 0%,var(--surface) 60%)}
+.pc-pop{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--accent);color:#080c10;font-size:.7rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:.25rem 1rem;border-radius:100px;white-space:nowrap}
+.pc-label{font-size:.75rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:.5rem;font-weight:500}
+.pc-price{font-family:'Syne',sans-serif;font-size:3rem;font-weight:800;letter-spacing:-.03em;line-height:1;margin-bottom:.25rem}
+.pc-price span{font-size:1rem;font-weight:400;color:var(--muted)}
+.pc-period{font-size:.8rem;color:var(--muted);margin-bottom:1.5rem}
+.pc-desc{font-size:.88rem;color:var(--muted);margin-bottom:1.5rem;font-weight:300;line-height:1.6}
+.pc-features{list-style:none;display:flex;flex-direction:column;gap:.7rem;margin-bottom:2rem}
+.pc-features li{font-size:.88rem;display:flex;align-items:flex-start;gap:10px}
+.pc-features li::before{content:'✓';color:var(--accent);font-weight:600;font-size:.8rem;flex-shrink:0;margin-top:2px}
+.pc-features li.dim{color:var(--muted)}.pc-features li.dim::before{color:var(--muted)}
+.pc-btn{width:100%;padding:.8rem;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:.92rem;font-weight:500;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text);transition:all .2s}
+.pc-btn:hover{background:rgba(255,255,255,.06)}
+.pc-btn.acc{background:var(--accent);color:#080c10;border-color:var(--accent)}
+.pc-btn.acc:hover{box-shadow:0 0 30px rgba(0,229,176,.3)}
+.pc-btn:disabled{opacity:.5;cursor:not-allowed}
+
+.stripe-note{background:rgba(79,143,255,.08);border:1px solid rgba(79,143,255,.2);border-radius:12px;padding:1rem 1.25rem;font-size:.82rem;color:#a0bcff;text-align:center;margin-bottom:3rem}
+
+.faq{max-width:700px;margin:0 auto;text-align:left}
+.faq-title{font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:700;text-align:center;margin-bottom:2rem}
+.faq-item{border-bottom:1px solid var(--border);padding:1.25rem 0}
+.faq-q{font-size:.95rem;font-weight:500;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:1rem}
+.faq-q:after{content:'﹢';font-size:1.2rem;color:var(--muted);flex-shrink:0;transition:transform .2s}
+.faq-item.open .faq-q:after{content:'－'}
+.faq-a{font-size:.88rem;color:var(--muted);line-height:1.7;font-weight:300;max-height:0;overflow:hidden;transition:max-height .3s ease,padding .3s}
+.faq-item.open .faq-a{max-height:200px;padding-top:.75rem}
+
+@media(max-width:900px){.pricing-grid{grid-template-columns:1fr}}
+@media(max-width:768px){nav{padding:1rem 1.5rem}.nav-links{display:none}.page{padding:7rem 1.5rem 4rem}}
+</style>
+</head>
+<body>
+<nav>
+  <a href="index.html" class="logo">Neural<span>Hub</span></a>
+  <ul class="nav-links">
+    <li><a href="tools.html">Explore</a></li>
+    <li><a href="pricing.html" class="active">Pricing</a></li>
+    <li><a href="submit.html">Submit Tool</a></li>
+  </ul>
+  <div class="nav-right" id="navRight"></div>
+</nav>
+
+<div class="page">
+  <div class="page-badge">💳 Simple pricing</div>
+  <h1 class="page-title">Choose your plan</h1>
+  <p class="page-sub">Start free, upgrade when you're ready. No hidden fees, no surprise bills.</p>
+
+  <div class="toggle-row">
+    <span class="toggle-label active" id="monthlyLabel">Monthly</span>
+    <label class="toggle"><input type="checkbox" id="billingToggle" onchange="toggleBilling()"/><span class="slider"></span></label>
+    <span class="toggle-label" id="yearlyLabel">Yearly <span class="save-badge">Save 20%</span></span>
+  </div>
+
+  <div id="stripeNote" class="stripe-note" style="display:none">
+    ⚙️ <strong>Stripe not configured yet.</strong> Add your <code>STRIPE_SECRET_KEY</code> to <code>.env</code> to enable real payments. <a href="https://dashboard.stripe.com" target="_blank" style="color:var(--accent2)">Get keys →</a>
+  </div>
+
+  <div class="pricing-grid" id="pricingGrid">
+    <!-- Rendered by JS -->
+  </div>
+
+  <div class="faq">
+    <div class="faq-title">Frequently asked questions</div>
+    <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Can I change my plan anytime?</div><div class="faq-a">Yes, you can upgrade or downgrade at any time. Changes take effect immediately and we prorate the billing.</div></div>
+    <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">What counts as an API call?</div><div class="faq-a">Each request to any tool endpoint counts as one API call, regardless of the model or output size. Batch requests count per item in the batch.</div></div>
+    <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Is there a free trial for Pro?</div><div class="faq-a">Yes! Pro comes with a 7-day free trial. No credit card required to start the trial.</div></div>
+    <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">What payment methods do you accept?</div><div class="faq-a">We accept all major credit cards (Visa, Mastercard, Amex), and bank transfers for Enterprise plans. All payments are processed securely via Stripe.</div></div>
+    <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Can I get a refund?</div><div class="faq-a">Yes, we offer a 14-day money-back guarantee for all paid plans. No questions asked.</div></div>
+  </div>
+</div>
+
+<script>
+const API='https://neuralhub-backend.onrender.com/api';
+let token=localStorage.getItem('nh_token'),currentUser=null,isYearly=false,stripeOk=false;
+
+async function init(){
+  if(token){try{const r=await fetch(`${API}/auth/me`,{headers:{Authorization:`Bearer ${token}`}});if(r.ok){const d=await r.json();currentUser=d.user;}else{token=null;localStorage.removeItem('nh_token');}}catch(_){}}
+  renderNav();
+  try{const r=await fetch(`${API}/payments/plans`);const d=await r.json();stripeOk=d.stripeConfigured;if(!stripeOk)document.getElementById('stripeNote').style.display='block';}catch(_){}
+  renderPricing();
+}
+
+function toggleBilling(){isYearly=document.getElementById('billingToggle').checked;document.getElementById('monthlyLabel').classList.toggle('active',!isYearly);document.getElementById('yearlyLabel').classList.toggle('active',isYearly);renderPricing();}
+
+function renderPricing(){
+  const plans=[
+    {id:'free',label:'Starter',monthly:0,features:['100 API calls/day','Access to 50+ free models','Community support','No credit card required'],desc:'Perfect for exploring and prototyping AI tools.'},
+    {id:'pro',label:'Pro',monthly:29,features:['50,000 API calls/mo','All 1,200+ models','Priority support','Custom webhooks','Analytics dashboard','7-day free trial'],desc:'For developers building real production products.',featured:true},
+    {id:'enterprise',label:'Enterprise',monthly:null,features:['Unlimited API calls','Private model deployment','SLA & dedicated support','SSO & RBAC','On-premise options','Custom integrations'],desc:'For teams that need scale, security, and control.'}
+  ];
+  document.getElementById('pricingGrid').innerHTML=plans.map(p=>{
+    const price=p.monthly===null?'Custom':p.monthly===0?'$0':isYearly?`$${Math.round(p.monthly*.8*12)}`:`$${p.monthly}`;
+    const period=p.monthly===null?'contact sales':p.monthly===0?'forever free':isYearly?'/year':'/ month';
+    let btnText='Get started free',btnClass='pc-btn';
+    if(p.id==='pro'){btnText=currentUser?'Upgrade to Pro':'Start free trial';btnClass='pc-btn acc';}
+    if(p.id==='enterprise'){btnText='Talk to sales';btnClass='pc-btn';}
+    return `<div class="pc${p.featured?' featured':''}">
+      ${p.featured?'<div class="pc-pop">Most Popular</div>':''}
+      <div class="pc-label">${p.label}</div>
+      <div class="pc-price">${price}${p.monthly&&p.monthly>0?`<span> </span>`:''}</div>
+      <div class="pc-period">${period}</div>
+      <div class="pc-desc">${p.desc}</div>
+      <ul class="pc-features">${p.features.map(f=>`<li>${f}</li>`).join('')}</ul>
+      <button class="${btnClass}" onclick="selectPlan('${p.id}')">${btnText}</button>
+    </div>`;
+  }).join('');
+}
+
+async function selectPlan(id){
+  if(id==='free'){window.location.href='index.html';return;}
+  if(id==='enterprise'){alert('Contact us at enterprise@neuralhub.io for a custom quote.');return;}
+  if(id==='pro'){
+    if(!currentUser){window.location.href='index.html';return;}
+    if(!stripeOk){alert('Stripe is not configured yet.\n\nTo enable payments:\n1. Create account at stripe.com\n2. Add STRIPE_SECRET_KEY to your .env file\n3. Create a product & price in Stripe dashboard\n4. Add STRIPE_PRO_PRICE_ID to .env');return;}
+    try{
+      const r=await fetch(`${API}/payments/create-checkout`,{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'}});
+      const d=await r.json();
+      if(d.url)window.location.href=d.url;
+      else alert(d.message||'Could not create checkout session.');
+    }catch(_){alert('Server error. Make sure backend is running.');}
+  }
+}
+
+function toggleFaq(el){el.parentElement.classList.toggle('open');}
+
+function renderNav(){
+  const el=document.getElementById('navRight');
+  if(!currentUser){el.innerHTML=`<a class="btn-ghost" href="index.html">Log in</a><button class="btn-accent" onclick="window.location.href='index.html'">Get started</button>`;}
+  else{const i=currentUser.name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);el.innerHTML=`<div class="user-pill"><div class="user-avatar">${i}</div><span style="font-size:.85rem;font-weight:500">${currentUser.name.split(' ')[0]}</span><span style="color:var(--muted);font-size:.75rem">▾</span><div class="user-dropdown"><a href="dashboard.html">🏠 Dashboard</a><a href="tools.html">🔍 Explore</a><button class="logout-btn" onclick="logout()">Log out</button></div></div>`;}
+}
+function logout(){localStorage.removeItem('nh_token');window.location.reload();}
+init();
+</script>
+</body>
+</html>
