@@ -7,12 +7,11 @@ const authRoutes = require('./routes/auth');
 const toolRoutes = require('./routes/tools');
 const paymentRoutes = require('./routes/payments');
 const submissionRoutes = require('./routes/submissions');
+const aiRoutes = require('./routes/ai');
 
 const app = express();
 
-// Stripe webhook needs raw body - must be before express.json()
 app.use('/api/payments/webhook', express.raw({ type: 'application/json' }));
-
 app.use(cors({ origin: '*', credentials: true }));
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true }));
@@ -21,6 +20,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/tools', toolRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/submissions', submissionRoutes);
+app.use('/api/ai', aiRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ success: true, message: 'NeuralHub API is running 🚀', timestamp: new Date() });
