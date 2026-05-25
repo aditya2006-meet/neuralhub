@@ -6,6 +6,7 @@ const OPENROUTER_API = 'https://openrouter.ai/api/v1/chat/completions';
 const MODEL = 'meta-llama/llama-3.1-8b-instruct:free';
 
 async function callAI(prompt) {
+  console.log('Calling OpenRouter, key exists:', !!process.env.OPENROUTER_API_KEY);
   const res = await fetch(OPENROUTER_API, {
     method: 'POST',
     headers: {
@@ -21,6 +22,7 @@ async function callAI(prompt) {
     })
   });
   const data = await res.json();
+  console.log('OpenRouter response:', JSON.stringify(data).slice(0, 200));
   if (data.error) throw new Error(data.error.message);
   return data.choices[0].message.content;
 }
