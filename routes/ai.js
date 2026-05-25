@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { protect } = require('../middleware/auth');
-
+const fetch = require('node-fetch');
 const OPENROUTER_API = 'https://openrouter.ai/api/v1/chat/completions';
 const MODEL = 'meta-llama/llama-3.1-8b-instruct:free';
 
