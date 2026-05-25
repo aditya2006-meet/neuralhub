@@ -3,7 +3,7 @@ const router = express.Router();
 const { protect } = require('../middleware/auth');
 
 const OPENROUTER_API = 'https://openrouter.ai/api/v1/chat/completions';
-const MODEL = 'google/gemini-2.0-flash-exp:free';
+const MODEL = 'meta-llama/llama-3.1-8b-instruct:free';
 
 async function callAI(prompt) {
   const res = await fetch(OPENROUTER_API, {
