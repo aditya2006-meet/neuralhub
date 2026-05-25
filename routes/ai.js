@@ -2,32 +2,28 @@ const express = require('express');
 const router = express.Router();
 const { protect } = require('../middleware/auth');
 
-const GEMINI_API = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+const OPENROUTER_API = 'https://openrouter.ai/api/v1/chat/completions';
+const MODEL = 'google/gemini-2.0-flash-exp:free';
 
-async function callGemini(prompt) {
-  const res = await fetch(`${GEMINI_API}?key=${process.env.GEMINI_API_KEY}`, {
+async function callAI(prompt) {
+  const res = await fetch(OPENROUTER_API, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
+      'HTTP-Referer': 'https://aditya2006-meet.github.io/neuralhub',
+      'X-Title': 'NeuralHub AI Marketplace'
+    },
     body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: { temperature: 0.7, maxOutputTokens: 1024 }
+      model: MODEL,
+      messages: [{ role: 'user', content: prompt }],
+      max_tokens: 1024
     })
   });
   const data = await res.json();
   if (data.error) throw new Error(data.error.message);
-  return data.candidates[0].content.parts[0].text;
+  return data.choices[0].message.content;
 }
-
-// LIST AVAILABLE MODELS
-router.get('/models', async (req, res) => {
-  try {
-    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${process.env.GEMINI_API_KEY}`);
-    const d = await r.json();
-    res.json(d);
-  } catch(err) {
-    res.status(500).json({ error: err.message });
-  }
-});
 
 // TEXT GENERATION
 router.post('/text', protect, async (req, res) => {
@@ -36,12 +32,12 @@ router.post('/text', protect, async (req, res) => {
     if (!prompt) return res.status(400).json({ success: false, message: 'Prompt is required' });
     const prompts = {
       blog: `Write a professional, engaging blog post about: ${prompt}\n\nInclude a title, introduction, 3 main sections with subheadings, and a conclusion.`,
-      social: `Write 3 different social media posts about: ${prompt}\n\nOne for Twitter (under 280 chars), one for LinkedIn (professional), one for Instagram (with hashtags).`,
+      social: `Write 3 different social media posts about: ${prompt}\n\nOne for Twitter (under 280 chars), one for LinkedIn (professional), one for Instagram (with hashtags). Label each clearly.`,
       email: `Write a professional email about: ${prompt}\n\nInclude subject line, greeting, body, and sign-off.`,
       ad: `Write 3 compelling ad copies for: ${prompt}\n\nInclude headline, body text, and CTA for each.`,
       general: `${prompt}`
     };
-    const result = await callGemini(prompts[type] || prompts.general);
+    const result = await callAI(prompts[type] || prompts.general);
     res.json({ success: true, result, type });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -60,7 +56,7 @@ router.post('/code', protect, async (req, res) => {
       debug: `Debug this code and fix any issues:\n\`\`\`\n${prompt}\n\`\`\`\n\nIdentify bugs, provide fixed code, and explain what was wrong.`,
       docs: `Generate comprehensive documentation for this code:\n\`\`\`\n${prompt}\n\`\`\`\n\nInclude function descriptions, parameters, return values, and examples.`
     };
-    const result = await callGemini(prompts[type] || prompts.generate);
+    const result = await callAI(prompts[type] || prompts.generate);
     res.json({ success: true, result, language, type });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -78,7 +74,7 @@ router.post('/summarize', protect, async (req, res) => {
       executive: `Create an executive summary with Key Points, Main Findings, and Recommendations:\n\n${text}`,
       qa: `Create a Q&A format summary with 5 key questions and answers:\n\n${text}`
     };
-    const result = await callGemini(prompts[style] || prompts.bullet);
+    const result = await callAI(prompts[style] || prompts.bullet);
     res.json({ success: true, result, style });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -90,7 +86,7 @@ router.post('/analyze', protect, async (req, res) => {
   try {
     const { data, question } = req.body;
     if (!data || !question) return res.status(400).json({ success: false, message: 'Data and question are required' });
-    const result = await callGemini(`Analyze this data and answer: ${question}\n\nData:\n${data}\n\nProvide direct answer, key insights, trends, and recommendations.`);
+    const result = await callAI(`Analyze this data and answer: ${question}\n\nData:\n${data}\n\nProvide direct answer, key insights, trends, and recommendations.`);
     res.json({ success: true, result });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -102,7 +98,7 @@ router.post('/agent', protect, async (req, res) => {
   try {
     const { task } = req.body;
     if (!task) return res.status(400).json({ success: false, message: 'Task is required' });
-    const result = await callGemini(`You are an autonomous AI agent. Complete this task step by step:\n\nTask: ${task}\n\nProvide task breakdown, execution of each step, final result, and summary.`);
+    const result = await callAI(`You are an autonomous AI agent. Complete this task step by step:\n\nTask: ${task}\n\nProvide task breakdown, execution of each step, final result, and summary.`);
     res.json({ success: true, result });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -114,7 +110,7 @@ router.post('/describe', protect, async (req, res) => {
   try {
     const { prompt } = req.body;
     if (!prompt) return res.status(400).json({ success: false, message: 'Prompt is required' });
-    const result = await callGemini(`Create a detailed, vivid image description for: ${prompt}\n\nDescribe composition, colors, lighting, mood, style, and key elements in detail.`);
+    const result = await callAI(`Create a detailed, vivid image description for: ${prompt}\n\nDescribe composition, colors, lighting, mood, style, and key elements in detail.`);
     res.json({ success: true, result });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -126,7 +122,7 @@ router.post('/transcribe', protect, async (req, res) => {
   try {
     const { content } = req.body;
     if (!content) return res.status(400).json({ success: false, message: 'Content is required' });
-    const result = await callGemini(`Convert this spoken content into a clean, formatted transcript with proper punctuation and paragraphs:\n\n${content}`);
+    const result = await callAI(`Convert this spoken content into a clean, formatted transcript with proper punctuation and paragraphs:\n\n${content}`);
     res.json({ success: true, result });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -138,7 +134,7 @@ router.post('/chat', protect, async (req, res) => {
   try {
     const { message } = req.body;
     if (!message) return res.status(400).json({ success: false, message: 'Message is required' });
-    const result = await callGemini(message);
+    const result = await callAI(message);
     res.json({ success: true, result });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
