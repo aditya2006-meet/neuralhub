@@ -17,11 +17,8 @@ const ALLOWED_ORIGINS = [
   'http://localhost:5500',
   'http://127.0.0.1:5500'
 ];
-
-app.use('/api/payments/webhook', express.raw({ type: 'application/json' }));
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (curl, Postman, mobile apps)
     if (!origin || ALLOWED_ORIGINS.includes(origin)) return callback(null, true);
     callback(new Error(`CORS blocked: ${origin}`));
   },
