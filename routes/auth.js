@@ -92,7 +92,11 @@ router.post('/forgot-password', async (req, res) => {
 });
 
 // RESET PASSWORD
-router.post('/reset-password/:token', async (req, res) => {
+router.post('/reset-password/:token', [
+  body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return res.status(400).json({ success: false, errors: errors.array() });
   try {
     const user = await User.findOne({
       resetPasswordToken: req.params.token,
