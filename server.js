@@ -11,8 +11,22 @@ const aiRoutes = require('./routes/ai');
 
 const app = express();
 
+const ALLOWED_ORIGINS = [
+  'https://aditya2006-meet.github.io',
+  'http://localhost:3000',
+  'http://localhost:5500',
+  'http://127.0.0.1:5500'
+];
+
 app.use('/api/payments/webhook', express.raw({ type: 'application/json' }));
-app.use(cors({ origin: '*', credentials: true }));
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow requests with no origin (curl, Postman, mobile apps)
+    if (!origin || ALLOWED_ORIGINS.includes(origin)) return callback(null, true);
+    callback(new Error(`CORS blocked: ${origin}`));
+  },
+  credentials: true
+}));
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true }));
 
