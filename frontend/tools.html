@@ -162,6 +162,18 @@
       <option value="-createdAt">Newest</option>
       <option value="name">A → Z</option>
     </select>
+    <select class="filter-select" id="badgeFilter" onchange="applyFilters()">
+      <option value="">All Plans</option>
+      <option value="free">Free</option>
+      <option value="pro">Pro</option>
+      <option value="new">New</option>
+    </select>
+    <select class="filter-select" id="ratingFilter" onchange="applyFilters()">
+      <option value="0">Any Rating</option>
+      <option value="4.5">4.5+ ★</option>
+      <option value="4">4.0+ ★</option>
+      <option value="3.5">3.5+ ★</option>
+    </select>
     <div class="view-toggle">
       <button class="view-btn-t active" id="gridBtn" onclick="setView('grid')" title="Grid view">⊞</button>
       <button class="view-btn-t" id="listBtn" onclick="setView('list')" title="List view">☰</button>
@@ -260,13 +272,18 @@ function applyFilters() {
   const sort = document.getElementById('sortSelect').value;
   const q = currentSearch.toLowerCase().trim();
 
+  const badge = document.getElementById('badgeFilter').value;
+  const minRating = parseFloat(document.getElementById('ratingFilter').value) || 0;
+
   let filtered = allTools.filter(t => {
     const matchCat = !currentCat || t.category === currentCat;
     const matchQ = !q ||
       t.name.toLowerCase().includes(q) ||
       t.description.toLowerCase().includes(q) ||
       (t.tags||[]).some(tg => tg.toLowerCase().includes(q));
-    return matchCat && matchQ;
+    const matchBadge = !badge || t.badge === badge;
+    const matchRating = !minRating || (t.averageRating || 0) >= minRating;
+    return matchCat && matchQ && matchBadge && matchRating;
   });
 
   if (sort === '-usageCount') filtered.sort((a,b) => b.usageCount - a.usageCount);
@@ -281,13 +298,29 @@ function applyFilters() {
 function updateActiveFilters() {
   const container = document.getElementById('activeFilters');
   const chips = [];
+  const badge = document.getElementById('badgeFilter').value;
+  const rating = document.getElementById('ratingFilter').value;
   if (currentCat) chips.push(`<div class="filter-chip">📁 ${currentCat} <button onclick="clearCat()">✕</button></div>`);
   if (currentSearch) chips.push(`<div class="filter-chip">🔍 "${currentSearch}" <button onclick="clearSearch()">✕</button></div>`);
+  if (badge) chips.push(`<div class="filter-chip">🏷 ${badge} <button onclick="document.getElementById('badgeFilter').value='';applyFilters()">✕</button></div>`);
+  if (rating > 0) chips.push(`<div class="filter-chip">⭐ ${rating}+ <button onclick="document.getElementById('ratingFilter').value='0';applyFilters()">✕</button></div>`);
+  if (chips.length > 1) chips.push(`<div class="filter-chip" style="cursor:pointer;opacity:0.7" onclick="clearAllFilters()">Clear all ✕</div>`);
   container.innerHTML = chips.join('');
 }
 
 function clearCat() {
   currentCat = '';
+  document.querySelectorAll('.cat').forEach((b,i) => b.classList.toggle('active', i===0));
+  applyFilters();
+}
+
+function clearAllFilters() {
+  currentCat = '';
+  currentSearch = '';
+  document.getElementById('searchInput').value = '';
+  document.getElementById('searchClear').style.display = 'none';
+  document.getElementById('badgeFilter').value = '';
+  document.getElementById('ratingFilter').value = '0';
   document.querySelectorAll('.cat').forEach((b,i) => b.classList.toggle('active', i===0));
   applyFilters();
 }
@@ -324,7 +357,7 @@ function renderTools(tools) {
         <div class="empty-icon">🔍</div>
         <h3>No tools found</h3>
         <p>Try a different search or clear your filters.</p>
-        <button class="empty-action" onclick="clearSearch();clearCat()">Clear filters</button>
+        <button class="empty-action" onclick="clearAllFilters()">Clear all filters</button>
       </div>`;
     return;
   }

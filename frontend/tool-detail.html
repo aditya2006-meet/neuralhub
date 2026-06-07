@@ -71,9 +71,22 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
 
 /* REVIEWS */
 .review-form{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1.5rem;margin-bottom:1.5rem}
-.star-row{display:flex;gap:6px;margin-bottom:1rem}
-.star{font-size:1.4rem;cursor:pointer;opacity:.3;transition:opacity .15s;background:none;border:none;padding:0}
-.star.active{opacity:1}
+.star-row{display:flex;gap:4px;margin-bottom:1rem;align-items:center}
+.star{font-size:1.6rem;cursor:pointer;color:#3a3f4a;transition:color .12s,transform .12s;background:none;border:none;padding:2px;line-height:1}
+.star:hover,.star.hover,.star.active{color:#fbbf24;transform:scale(1.15)}
+.star-label{font-size:.82rem;color:var(--muted);margin-left:.5rem}
+.rating-breakdown{background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:1rem;margin-bottom:1.25rem}
+.rating-summary{display:flex;align-items:center;gap:1.25rem;margin-bottom:1rem}
+.rating-big{font-family:'Syne',sans-serif;font-size:3rem;font-weight:800;line-height:1;color:var(--text)}
+.rating-stars-big{color:#fbbf24;font-size:1.1rem;letter-spacing:1px}
+.rating-count{font-size:.8rem;color:var(--muted)}
+.rating-bars{display:flex;flex-direction:column;gap:5px;flex:1}
+.rb-row{display:flex;align-items:center;gap:8px;font-size:.75rem;color:var(--muted)}
+.rb-bar{flex:1;height:4px;background:rgba(255,255,255,.06);border-radius:100px;overflow:hidden}
+.rb-fill{height:100%;background:#fbbf24;border-radius:100px;transition:width .8s cubic-bezier(.22,1,.36,1)}
+.reviews-sort{display:flex;gap:6px;margin-bottom:1rem}
+.rsort-btn{padding:.3rem .85rem;border-radius:100px;font-size:.78rem;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s}
+.rsort-btn.active{background:var(--surface2);color:var(--text);border-color:rgba(255,255,255,.15)}
 .review-input{width:100%;padding:.75rem 1rem;background:var(--bg);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;resize:vertical;min-height:80px;margin-bottom:.75rem;transition:border-color .2s}
 .review-input:focus{border-color:rgba(0,229,176,.4)}.review-input::placeholder{color:var(--muted)}
 .submit-review{padding:.65rem 1.4rem;background:var(--accent);color:#080c10;border:none;border-radius:100px;font-size:.88rem;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif}
@@ -89,6 +102,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
 .no-reviews{text-align:center;padding:2rem;color:var(--muted);font-size:.9rem}
 @media(max-width:768px){nav{padding:1rem 1.5rem}.nav-links{display:none}.page{padding:6rem 1.5rem 3rem}.hero-section{grid-template-columns:1fr}}
 </style>
+<link rel="stylesheet" href="mobile.css"/>
 </head>
 <body>
 <nav>
@@ -220,10 +234,30 @@ function renderTool(){
     ${currentUser?`
     <div class="review-form">
       <div style="font-size:.88rem;font-weight:500;margin-bottom:.75rem">Leave a review</div>
-      <div class="star-row" id="starRow">${[1,2,3,4,5].map(i=>`<button class="star" data-val="${i}" onclick="setRating(${i})">★</button>`).join('')}</div>
+      <div class="star-row" id="starRow">
+        ${[1,2,3,4,5].map(i=>`<button class="star" data-val="${i}" onclick="setRating(${i})" onmouseenter="hoverRating(${i})" onmouseleave="leaveRating()">★</button>`).join('')}
+        <span class="star-label" id="starLabel"></span>
+      </div>
       <textarea class="review-input" id="reviewInput" placeholder="Share your experience…"></textarea>
       <button class="submit-review" id="submitBtn" onclick="submitReview()">Submit review</button>
     </div>`:`<p style="color:var(--muted);font-size:.88rem;margin-bottom:1.25rem"><a href="index.html" style="color:var(--accent)">Log in</a> to leave a review.</p>`}
+    <div id="ratingBreakdown" style="display:none">
+      <div class="rating-breakdown">
+        <div class="rating-summary">
+          <div>
+            <div class="rating-big" id="avgBig">—</div>
+            <div class="rating-stars-big" id="starsBig"></div>
+            <div class="rating-count" id="ratingCount"></div>
+          </div>
+          <div class="rating-bars" id="ratingBars"></div>
+        </div>
+      </div>
+      <div class="reviews-sort">
+        <button class="rsort-btn active" onclick="sortReviews('newest',this)">Newest</button>
+        <button class="rsort-btn" onclick="sortReviews('highest',this)">Highest</button>
+        <button class="rsort-btn" onclick="sortReviews('lowest',this)">Lowest</button>
+      </div>
+    </div>
     <div class="reviews-list" id="reviewsList"><p class="no-reviews">Loading reviews…</p></div>
   `;
 }
@@ -285,8 +319,53 @@ async function loadReviews(){
   }catch(_){}
 }
 
-function setRating(val){selectedRating=val;document.querySelectorAll('.star').forEach(s=>s.classList.toggle('active',+s.dataset.val<=val));}
+function setRating(val){
+  selectedRating=val;
+  const labels=['','Terrible','Bad','OK','Good','Excellent'];
+  document.querySelectorAll('.star').forEach(s=>s.classList.toggle('active',+s.dataset.val<=val));
+  const lbl=document.getElementById('starLabel');
+  if(lbl) lbl.textContent = val ? labels[val] : '';
+}
+function hoverRating(val){
+  document.querySelectorAll('.star').forEach(s=>s.classList.toggle('hover',+s.dataset.val<=val));
+}
+function leaveRating(){
+  document.querySelectorAll('.star').forEach(s=>s.classList.remove('hover'));
+}
 
+function showBreakdown(reviews) {
+  const bd = document.getElementById('ratingBreakdown');
+  if (!bd || !reviews.length) return;
+  bd.style.display = 'block';
+  const avg = reviews.reduce((s,r)=>s+r.rating,0)/reviews.length;
+  document.getElementById('avgBig').textContent = avg.toFixed(1);
+  document.getElementById('starsBig').textContent = '★'.repeat(Math.round(avg)) + '☆'.repeat(5-Math.round(avg));
+  document.getElementById('ratingCount').textContent = reviews.length + ' review' + (reviews.length!==1?'s':'');
+  const bars = document.getElementById('ratingBars');
+  bars.innerHTML = [5,4,3,2,1].map(star => {
+    const cnt = reviews.filter(r=>r.rating===star).length;
+    const pct = reviews.length ? (cnt/reviews.length*100) : 0;
+    return `<div class="rb-row"><span>${star}★</span><div class="rb-bar"><div class="rb-fill" style="width:${pct}%"></div></div><span>${cnt}</span></div>`;
+  }).join('');
+}
+function renderReviews(reviews) {
+  const list = document.getElementById('reviewsList');
+  list.innerHTML = reviews.map(rv => {
+    const ini = rv.user?.name?.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2)||'U';
+    const date = new Date(rv.createdAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+    const stars = '★'.repeat(rv.rating)+'☆'.repeat(5-rv.rating);
+    return `<div class="review-card"><div class="review-header"><div class="reviewer"><div class="rev-avatar">${ini}</div><div><div class="rev-name">${rv.user?.name||'User'}</div><div class="rev-date">${date}</div></div></div><div class="rev-stars">${stars}</div></div><div class="rev-comment">${rv.comment}</div></div>`;
+  }).join('');
+}
+function sortReviews(by, btn) {
+  document.querySelectorAll('.rsort-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const sorted = [...(window._allReviews||[])];
+  if (by==='newest') sorted.sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+  else if (by==='highest') sorted.sort((a,b)=>b.rating-a.rating);
+  else if (by==='lowest') sorted.sort((a,b)=>a.rating-b.rating);
+  renderReviews(sorted);
+}
 async function submitReview(){
   const comment=document.getElementById('reviewInput')?.value?.trim();
   if(!selectedRating){alert('Please select a star rating.');return;}
@@ -299,6 +378,7 @@ async function submitReview(){
     if(!r.ok)throw new Error(d.message);
     document.getElementById('reviewInput').value='';selectedRating=0;
     document.querySelectorAll('.star').forEach(s=>s.classList.remove('active'));
+    const lbl=document.getElementById('starLabel');if(lbl)lbl.textContent='';
     await loadReviews();
   }catch(err){alert(err.message||'Could not submit review.');}
   finally{btn.disabled=false;btn.textContent='Submit review';}
