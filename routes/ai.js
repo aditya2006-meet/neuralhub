@@ -1,8 +1,50 @@
 const express = require('express');
 const router = express.Router();
 const { protect } = require('../middleware/auth');
+const User = require('../models/user');
 const OPENROUTER_API = 'https://openrouter.ai/api/v1/chat/completions';
 const MODEL = 'meta-llama/llama-3.1-8b-instruct:free';
+
+const FREE_DAILY_LIMIT = 100;
+
+// ─── Rate limit middleware ────────────────────────────────────────────────────
+const checkRateLimit = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user._id);
+
+    // Pro users have unlimited calls
+    if (user.plan === 'pro') return next();
+
+    const now = new Date();
+    const lastCall = user.lastApiCall ? new Date(user.lastApiCall) : null;
+    const isNewDay = !lastCall || lastCall.toDateString() !== now.toDateString();
+
+    // Reset counter if it's a new day
+    if (isNewDay) {
+      user.apiCallsToday = 0;
+    }
+
+    if (user.apiCallsToday >= FREE_DAILY_LIMIT) {
+      return res.status(429).json({
+        success: false,
+        message: `Daily limit of ${FREE_DAILY_LIMIT} API calls reached. Upgrade to Pro for unlimited access.`,
+        upgradeUrl: '/pricing.html'
+      });
+    }
+
+    // Increment and save
+    user.apiCallsToday += 1;
+    user.lastApiCall = now;
+    await user.save();
+
+    // Attach remaining calls info to response headers
+    res.set('X-RateLimit-Limit', FREE_DAILY_LIMIT);
+    res.set('X-RateLimit-Remaining', FREE_DAILY_LIMIT - user.apiCallsToday);
+    next();
+  } catch (err) {
+    next(err);
+  }
+};
 
 async function callAI(prompt) {
   console.log('Calling OpenRouter, key exists:', !!process.env.OPENROUTER_API_KEY);
@@ -27,7 +69,7 @@ async function callAI(prompt) {
 }
 
 // TEXT GENERATION
-router.post('/text', protect, async (req, res) => {
+router.post('/text', protect, checkRateLimit, async (req, res) => {
   try {
     const { prompt, type = 'general' } = req.body;
     if (!prompt) return res.status(400).json({ success: false, message: 'Prompt is required' });
@@ -46,7 +88,7 @@ router.post('/text', protect, async (req, res) => {
 });
 
 // CODE GENERATION
-router.post('/code', protect, async (req, res) => {
+router.post('/code', protect, checkRateLimit, async (req, res) => {
   try {
     const { prompt, language = 'javascript', type = 'generate' } = req.body;
     if (!prompt) return res.status(400).json({ success: false, message: 'Prompt is required' });
@@ -65,7 +107,7 @@ router.post('/code', protect, async (req, res) => {
 });
 
 // SUMMARIZE
-router.post('/summarize', protect, async (req, res) => {
+router.post('/summarize', protect, checkRateLimit, async (req, res) => {
   try {
     const { text, style = 'bullet' } = req.body;
     if (!text) return res.status(400).json({ success: false, message: 'Text is required' });
@@ -83,7 +125,7 @@ router.post('/summarize', protect, async (req, res) => {
 });
 
 // DATA ANALYSIS
-router.post('/analyze', protect, async (req, res) => {
+router.post('/analyze', protect, checkRateLimit, async (req, res) => {
   try {
     const { data, question } = req.body;
     if (!data || !question) return res.status(400).json({ success: false, message: 'Data and question are required' });
@@ -95,7 +137,7 @@ router.post('/analyze', protect, async (req, res) => {
 });
 
 // AI AGENT
-router.post('/agent', protect, async (req, res) => {
+router.post('/agent', protect, checkRateLimit, async (req, res) => {
   try {
     const { task } = req.body;
     if (!task) return res.status(400).json({ success: false, message: 'Task is required' });
@@ -107,7 +149,7 @@ router.post('/agent', protect, async (req, res) => {
 });
 
 // IMAGE DESCRIPTION
-router.post('/describe', protect, async (req, res) => {
+router.post('/describe', protect, checkRateLimit, async (req, res) => {
   try {
     const { prompt } = req.body;
     if (!prompt) return res.status(400).json({ success: false, message: 'Prompt is required' });
@@ -119,7 +161,7 @@ router.post('/describe', protect, async (req, res) => {
 });
 
 // TRANSCRIBE
-router.post('/transcribe', protect, async (req, res) => {
+router.post('/transcribe', protect, checkRateLimit, async (req, res) => {
   try {
     const { content } = req.body;
     if (!content) return res.status(400).json({ success: false, message: 'Content is required' });
@@ -131,7 +173,7 @@ router.post('/transcribe', protect, async (req, res) => {
 });
 
 // CHAT
-router.post('/chat', protect, async (req, res) => {
+router.post('/chat', protect, checkRateLimit, async (req, res) => {
   try {
     const { message } = req.body;
     if (!message) return res.status(400).json({ success: false, message: 'Message is required' });
