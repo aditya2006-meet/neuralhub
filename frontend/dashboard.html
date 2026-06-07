@@ -247,6 +247,7 @@ async function loadSavedTools() {
     grid.innerHTML = '<div class="empty-state"><div class="e-icon">🔖</div><p>No saved tools yet.<br/><a href="tools.html" style="color:var(--accent)">Browse tools →</a></p></div>';
     return;
   }
+  if (window.showSkeletons) window.showSkeletons('savedGrid', 3);
   try {
     const r = await fetch(`${API}/tools`);
     const d = await r.json();
@@ -262,6 +263,7 @@ async function loadSavedTools() {
           <button class="open-btn" onclick="window.location.href='tool-detail.html?slug=${t.slug}'">Open →</button>
         </div>
       </div>`).join('');
+    if (window.animateCards) window.animateCards('savedGrid');
   } catch(_) { grid.innerHTML = '<p style="color:var(--muted)">Could not load saved tools.</p>'; }
 }
 
@@ -354,5 +356,6 @@ function logout() { localStorage.removeItem('nh_token'); window.location.href = 
 
 init();
 </script>
+<script src="animations.js"></script>
 </body>
 </html>
