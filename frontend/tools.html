@@ -5,10 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>NeuralHub — Browse AI Tools</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="mobile.css"/>
 <style>
-  :root { --bg:#080c10;--surface:#0e1318;--border:rgba(255,255,255,0.07);--accent:#00e5b0;--accent2:#4f8fff;--accent3:#ff6b6b;--text:#e8edf2;--muted:#6b7a8d;--r:16px; }
+  :root{--bg:#080c10;--surface:#0e1318;--surface2:#131920;--border:rgba(255,255,255,0.07);--accent:#00e5b0;--accent2:#4f8fff;--accent3:#ff6b6b;--text:#e8edf2;--muted:#6b7a8d;--r:16px}
   *{box-sizing:border-box;margin:0;padding:0}
   body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh}
+
+  /* NAV */
   nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:1rem 3rem;background:rgba(8,12,16,0.9);backdrop-filter:blur(16px);border-bottom:1px solid var(--border)}
   .logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.3rem;color:var(--text);text-decoration:none}.logo span{color:var(--accent)}
   .nav-links{display:flex;gap:2rem;list-style:none}.nav-links a{color:var(--muted);text-decoration:none;font-size:0.9rem;transition:color 0.2s}.nav-links a:hover,.nav-links a.active{color:var(--text)}
@@ -23,50 +26,109 @@
   .user-dropdown a:hover,.user-dropdown button:hover{background:rgba(255,255,255,0.05);color:var(--text)}
   .user-dropdown .logout{color:var(--accent3)}
 
+  /* LAYOUT */
   .page{padding:7rem 3rem 4rem;max-width:1280px;margin:0 auto}
-  .page-header{margin-bottom:2.5rem}
-  .page-title{font-family:'Syne',sans-serif;font-size:2.2rem;font-weight:700;letter-spacing:-0.02em;margin-bottom:0.5rem}
+
+  /* HEADER */
+  .page-header{margin-bottom:2rem;display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:1rem}
+  .page-title{font-family:'Syne',sans-serif;font-size:2.2rem;font-weight:700;letter-spacing:-0.02em;margin-bottom:0.3rem}
   .page-sub{color:var(--muted);font-size:0.95rem}
+  .result-count{font-size:0.85rem;color:var(--muted);white-space:nowrap}
 
-  .toolbar{display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:2rem}
-  .search-box{position:relative;flex:1;min-width:240px}
-  .search-box input{width:100%;padding:0.75rem 1rem 0.75rem 2.6rem;background:var(--surface);border:1px solid var(--border);border-radius:100px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.9rem;outline:none;transition:border-color 0.2s}
-  .search-box input:focus{border-color:rgba(0,229,176,0.4)}
-  .search-box input::placeholder{color:var(--muted)}
-  .search-icon{position:absolute;left:1rem;top:50%;transform:translateY(-50%);color:var(--muted)}
-  .filter-select{padding:0.72rem 1rem;background:var(--surface);border:1px solid var(--border);border-radius:100px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.88rem;outline:none;cursor:pointer}
+  /* TOOLBAR */
+  .toolbar{display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;margin-bottom:1.5rem}
+  .search-wrap{position:relative;flex:1;min-width:220px}
+  .search-wrap input{width:100%;padding:0.72rem 1rem 0.72rem 2.6rem;background:var(--surface);border:1px solid var(--border);border-radius:100px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.9rem;outline:none;transition:border-color 0.2s}
+  .search-wrap input:focus{border-color:rgba(0,229,176,0.4)}
+  .search-wrap input::placeholder{color:var(--muted)}
+  .search-icon{position:absolute;left:1rem;top:50%;transform:translateY(-50%);color:var(--muted);font-size:0.9rem;pointer-events:none}
+  .search-clear{position:absolute;right:1rem;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;font-size:1rem;display:none;padding:0;line-height:1}
+  .filter-select{padding:0.72rem 2rem 0.72rem 1rem;background:var(--surface);border:1px solid var(--border);border-radius:100px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.88rem;outline:none;cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236b7a8d'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 0.85rem center}
   .filter-select option{background:var(--surface)}
+  .view-toggle{display:flex;gap:2px;background:var(--surface);border:1px solid var(--border);border-radius:100px;padding:3px}
+  .view-btn-t{background:none;border:none;color:var(--muted);cursor:pointer;padding:5px 10px;border-radius:100px;font-size:0.85rem;transition:all 0.2s}
+  .view-btn-t.active{background:var(--surface2);color:var(--text)}
 
-  .cats{display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:2rem}
-  .cat{padding:0.4rem 1rem;border-radius:100px;font-size:0.82rem;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all 0.2s;font-family:'DM Sans',sans-serif}
-  .cat:hover,.cat.active{background:var(--accent);color:#080c10;border-color:var(--accent);font-weight:500}
+  /* CATEGORY PILLS */
+  .cats{display:flex;gap:0.45rem;flex-wrap:wrap;margin-bottom:1.75rem}
+  .cat{padding:0.38rem 1rem;border-radius:100px;font-size:0.82rem;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all 0.18s;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:5px}
+  .cat:hover{border-color:rgba(255,255,255,0.18);color:var(--text)}
+  .cat.active{background:var(--accent);color:#080c10;border-color:var(--accent);font-weight:500}
+  .cat-count{font-size:0.72rem;opacity:0.7}
 
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:1.25rem}
-  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1.5rem;transition:all 0.2s;cursor:pointer;position:relative}
-  .card:hover{border-color:rgba(255,255,255,0.14);transform:translateY(-4px);box-shadow:0 20px 40px rgba(0,0,0,0.4)}
+  /* ACTIVE FILTERS */
+  .active-filters{display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:1.25rem;min-height:0}
+  .filter-chip{display:flex;align-items:center;gap:5px;padding:0.28rem 0.75rem;background:rgba(0,229,176,0.08);border:1px solid rgba(0,229,176,0.2);border-radius:100px;font-size:0.78rem;color:var(--accent)}
+  .filter-chip button{background:none;border:none;color:var(--accent);cursor:pointer;font-size:0.9rem;padding:0;line-height:1;opacity:0.7}
+  .filter-chip button:hover{opacity:1}
+
+  /* GRID — card view */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.25rem}
+  .grid.list-view{grid-template-columns:1fr;gap:0.75rem}
+
+  /* TOOL CARD */
+  .tool-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1.5rem;cursor:pointer;position:relative;overflow:hidden}
+  .tool-card::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at var(--mx,50%) var(--my,50%),rgba(0,229,176,0.04) 0%,transparent 60%);opacity:0;transition:opacity 0.3s}
+  .tool-card:hover::before{opacity:1}
   .card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1rem}
-  .card-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.4rem}
-  .badge{font-size:0.7rem;font-weight:500;padding:0.25rem 0.7rem;border-radius:100px}
+  .card-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0}
+  .card-badges{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+  .badge{font-size:0.68rem;font-weight:500;padding:0.22rem 0.65rem;border-radius:100px}
   .badge-free{background:rgba(0,229,176,0.12);color:var(--accent);border:1px solid rgba(0,229,176,0.2)}
   .badge-pro{background:rgba(79,143,255,0.12);color:var(--accent2);border:1px solid rgba(79,143,255,0.2)}
   .badge-new{background:rgba(255,107,107,0.12);color:var(--accent3);border:1px solid rgba(255,107,107,0.2)}
   .card-name{font-family:'Syne',sans-serif;font-weight:600;font-size:1.05rem;margin-bottom:0.4rem}
-  .card-desc{font-size:0.85rem;color:var(--muted);line-height:1.55;font-weight:300}
+  .card-desc{font-size:0.84rem;color:var(--muted);line-height:1.6;font-weight:300}
+
+  /* Tags */
+  .card-tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:0.85rem}
+  .tag{font-size:0.72rem;padding:0.2rem 0.6rem;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:6px;color:var(--muted);cursor:pointer;transition:all 0.15s}
+  .tag:hover{background:rgba(0,229,176,0.06);border-color:rgba(0,229,176,0.2);color:var(--accent)}
+
+  /* Footer */
   .card-footer{display:flex;align-items:center;justify-content:space-between;margin-top:1.25rem;padding-top:1rem;border-top:1px solid var(--border)}
-  .card-meta{font-size:0.78rem;color:var(--muted);display:flex;gap:1rem}
-  .save-btn{background:none;border:none;cursor:pointer;font-size:1.1rem;opacity:0.5;transition:opacity 0.2s;padding:0}
-  .save-btn:hover,.save-btn.saved{opacity:1}
-  .view-btn{font-size:0.78rem;font-weight:500;color:var(--accent);background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;transition:letter-spacing 0.2s}
-  .view-btn:hover{letter-spacing:0.03em}
+  .card-stats{display:flex;gap:1rem}
+  .stat-item{display:flex;align-items:center;gap:4px;font-size:0.78rem;color:var(--muted)}
+  .star-filled{color:#f59e0b}
+  .card-actions{display:flex;gap:8px;align-items:center}
+  .save-btn{background:none;border:1px solid var(--border);cursor:pointer;font-size:0.85rem;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;transition:all 0.2s;color:var(--muted)}
+  .save-btn:hover{background:rgba(255,255,255,0.05);border-color:rgba(255,255,255,0.15)}
+  .save-btn.saved{background:rgba(0,229,176,0.08);border-color:rgba(0,229,176,0.3);color:var(--accent)}
+  .try-btn{font-size:0.8rem;font-weight:500;background:rgba(0,229,176,0.1);color:var(--accent);border:1px solid rgba(0,229,176,0.2);padding:0.4rem 1rem;border-radius:8px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.2s}
+  .try-btn:hover{background:rgba(0,229,176,0.18);border-color:rgba(0,229,176,0.4)}
 
-  .empty{text-align:center;padding:4rem;color:var(--muted)}
-  .empty .emoji{font-size:3rem;margin-bottom:1rem}
+  /* LIST VIEW card overrides */
+  .list-view .tool-card{display:grid;grid-template-columns:56px 1fr auto;gap:1rem;align-items:center;padding:1rem 1.25rem}
+  .list-view .card-top{margin-bottom:0;flex-direction:column;align-items:flex-start;gap:0}
+  .list-view .card-icon{width:44px;height:44px}
+  .list-view .card-badges{justify-content:flex-start;margin-top:4px}
+  .list-view .card-body{min-width:0}
+  .list-view .card-name{font-size:0.95rem;margin-bottom:0.2rem}
+  .list-view .card-desc{font-size:0.82rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .list-view .card-tags{display:none}
+  .list-view .card-footer{display:none}
+  .list-view .card-actions-inline{display:flex;flex-direction:column;gap:6px;align-items:flex-end;flex-shrink:0}
+  .list-view .card-stats-inline{display:flex;gap:0.75rem;font-size:0.75rem;color:var(--muted);white-space:nowrap}
+  /* Hide inline stuff in grid view */
+  .card-actions-inline{display:none}
+  .card-stats-inline{display:none}
 
-  .skeleton{background:linear-gradient(90deg,var(--surface) 25%,var(--surface2,#141b22) 50%,var(--surface) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:var(--r)}
+  /* EMPTY */
+  .empty{text-align:center;padding:5rem 2rem;color:var(--muted)}
+  .empty-icon{font-size:3rem;margin-bottom:1rem}
+  .empty h3{font-family:'Syne',sans-serif;font-size:1.2rem;color:var(--text);margin-bottom:0.5rem}
+  .empty p{font-size:0.9rem;line-height:1.6}
+  .empty-action{margin-top:1.5rem;padding:0.6rem 1.5rem;background:var(--surface2);border:1px solid var(--border);border-radius:100px;color:var(--text);font-size:0.85rem;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.2s}
+  .empty-action:hover{border-color:rgba(255,255,255,0.2)}
+
+  /* Skeleton */
+  .skeleton{background:linear-gradient(90deg,var(--surface) 25%,var(--surface2) 50%,var(--surface) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:var(--r)}
   @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
-  .sk-card{height:200px}
+  .sk-card{height:220px}
 
-  @media(max-width:768px){nav{padding:1rem 1.5rem}.nav-links{display:none}.page{padding:6rem 1.5rem 3rem}}
+  /* Toast */
+  .toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(20px);background:var(--surface2);border:1px solid var(--border);border-radius:100px;padding:0.6rem 1.5rem;font-size:0.85rem;opacity:0;transition:all 0.3s;z-index:999;pointer-events:none;white-space:nowrap}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 </style>
 </head>
 <body>
@@ -81,47 +143,65 @@
 
 <div class="page">
   <div class="page-header">
-    <h1 class="page-title">Browse AI Tools</h1>
-    <p class="page-sub">Discover and deploy from our curated collection of <span id="toolCount">—</span> AI tools</p>
+    <div>
+      <h1 class="page-title">Browse AI Tools</h1>
+      <p class="page-sub">Discover from our curated collection of <span id="toolCount">—</span> AI tools</p>
+    </div>
+    <span class="result-count" id="resultCount"></span>
   </div>
 
   <div class="toolbar">
-    <div class="search-box">
+    <div class="search-wrap">
       <span class="search-icon">🔍</span>
-      <input type="text" id="searchInput" placeholder="Search tools, categories, tags…" oninput="applyFilters()" />
+      <input type="text" id="searchInput" placeholder="Search tools, tags, categories…" oninput="handleSearch(this.value)" autocomplete="off"/>
+      <button class="search-clear" id="searchClear" onclick="clearSearch()" title="Clear">✕</button>
     </div>
     <select class="filter-select" id="sortSelect" onchange="applyFilters()">
       <option value="-usageCount">Most Popular</option>
       <option value="-averageRating">Top Rated</option>
       <option value="-createdAt">Newest</option>
+      <option value="name">A → Z</option>
     </select>
+    <div class="view-toggle">
+      <button class="view-btn-t active" id="gridBtn" onclick="setView('grid')" title="Grid view">⊞</button>
+      <button class="view-btn-t" id="listBtn" onclick="setView('list')" title="List view">☰</button>
+    </div>
   </div>
 
   <div class="cats" id="cats">
-    <button class="cat active" onclick="filterCat(this,'')">All</button>
-    <button class="cat" onclick="filterCat(this,'text')">✍️ Text</button>
-    <button class="cat" onclick="filterCat(this,'image')">🖼️ Image</button>
-    <button class="cat" onclick="filterCat(this,'code')">💻 Code</button>
-    <button class="cat" onclick="filterCat(this,'audio')">🎵 Audio</button>
-    <button class="cat" onclick="filterCat(this,'data')">📊 Data</button>
-    <button class="cat" onclick="filterCat(this,'agent')">🤖 Agents</button>
+    <button class="cat active" onclick="filterCat(this,'')">All <span class="cat-count" id="cnt-all"></span></button>
+    <button class="cat" onclick="filterCat(this,'text')">✍️ Text <span class="cat-count" id="cnt-text"></span></button>
+    <button class="cat" onclick="filterCat(this,'image')">🖼️ Image <span class="cat-count" id="cnt-image"></span></button>
+    <button class="cat" onclick="filterCat(this,'code')">💻 Code <span class="cat-count" id="cnt-code"></span></button>
+    <button class="cat" onclick="filterCat(this,'audio')">🎵 Audio <span class="cat-count" id="cnt-audio"></span></button>
+    <button class="cat" onclick="filterCat(this,'data')">📊 Data <span class="cat-count" id="cnt-data"></span></button>
+    <button class="cat" onclick="filterCat(this,'agent')">🤖 Agents <span class="cat-count" id="cnt-agent"></span></button>
   </div>
 
-  <div class="grid" id="grid">
-    ${[...Array(6)].map(()=>`<div class="skeleton sk-card"></div>`).join('')}
-  </div>
+  <div class="active-filters" id="activeFilters"></div>
+
+  <div class="grid" id="grid"></div>
 </div>
+
+<div class="toast" id="toast"></div>
 
 <script>
 const API = 'https://neuralhub-backend.onrender.com/api';
 let token = localStorage.getItem('nh_token');
 let currentUser = null;
 let currentCat = '';
+let currentSearch = '';
+let currentView = localStorage.getItem('nh_view') || 'grid';
 let allTools = [];
 
-const iconBg = { text:'rgba(0,229,176,0.1)', image:'rgba(79,143,255,0.1)', code:'rgba(255,107,107,0.1)', audio:'rgba(251,191,36,0.1)', data:'rgba(0,229,176,0.1)', agent:'rgba(79,143,255,0.1)' };
+const iconBg = {
+  text:'rgba(0,229,176,0.1)', image:'rgba(79,143,255,0.1)',
+  code:'rgba(255,107,107,0.1)', audio:'rgba(251,191,36,0.1)',
+  data:'rgba(0,229,176,0.08)', agent:'rgba(79,143,255,0.1)'
+};
 
 async function init() {
+  setView(currentView, false);
   await loadUser();
   renderNav();
   await loadTools();
@@ -137,29 +217,79 @@ async function loadUser() {
 }
 
 async function loadTools() {
+  if (window.showSkeletons) window.showSkeletons('grid', 6);
   try {
     const r = await fetch(`${API}/tools`);
     const d = await r.json();
     allTools = d.tools || [];
     document.getElementById('toolCount').textContent = allTools.length + '+';
+    updateCategoryCounts();
     applyFilters();
   } catch(_) {
-    document.getElementById('grid').innerHTML = '<div class="empty"><div class="emoji">⚠️</div><p>Cannot connect to backend. Make sure your server is running.</p></div>';
+    document.getElementById('grid').innerHTML = `
+      <div class="empty" style="grid-column:1/-1">
+        <div class="empty-icon">⚠️</div>
+        <h3>Can't reach the server</h3>
+        <p>Make sure your backend is running on Render.</p>
+        <button class="empty-action" onclick="loadTools()">Try again</button>
+      </div>`;
   }
 }
 
+function updateCategoryCounts() {
+  const cats = ['text','image','code','audio','data','agent'];
+  document.getElementById('cnt-all').textContent = allTools.length;
+  cats.forEach(c => {
+    const el = document.getElementById('cnt-' + c);
+    if (el) el.textContent = allTools.filter(t => t.category === c).length;
+  });
+}
+
+function handleSearch(val) {
+  currentSearch = val;
+  document.getElementById('searchClear').style.display = val ? 'block' : 'none';
+  applyFilters();
+}
+
+function clearSearch() {
+  document.getElementById('searchInput').value = '';
+  handleSearch('');
+}
+
 function applyFilters() {
-  const q = document.getElementById('searchInput').value.toLowerCase();
   const sort = document.getElementById('sortSelect').value;
+  const q = currentSearch.toLowerCase().trim();
+
   let filtered = allTools.filter(t => {
     const matchCat = !currentCat || t.category === currentCat;
-    const matchQ = !q || t.name.toLowerCase().includes(q) || t.description.toLowerCase().includes(q) || (t.tags||[]).some(tg=>tg.includes(q));
+    const matchQ = !q ||
+      t.name.toLowerCase().includes(q) ||
+      t.description.toLowerCase().includes(q) ||
+      (t.tags||[]).some(tg => tg.toLowerCase().includes(q));
     return matchCat && matchQ;
   });
+
   if (sort === '-usageCount') filtered.sort((a,b) => b.usageCount - a.usageCount);
   else if (sort === '-averageRating') filtered.sort((a,b) => b.averageRating - a.averageRating);
-  else filtered.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+  else if (sort === '-createdAt') filtered.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+  else if (sort === 'name') filtered.sort((a,b) => a.name.localeCompare(b.name));
+
+  updateActiveFilters();
   renderTools(filtered);
+}
+
+function updateActiveFilters() {
+  const container = document.getElementById('activeFilters');
+  const chips = [];
+  if (currentCat) chips.push(`<div class="filter-chip">📁 ${currentCat} <button onclick="clearCat()">✕</button></div>`);
+  if (currentSearch) chips.push(`<div class="filter-chip">🔍 "${currentSearch}" <button onclick="clearSearch()">✕</button></div>`);
+  container.innerHTML = chips.join('');
+}
+
+function clearCat() {
+  currentCat = '';
+  document.querySelectorAll('.cat').forEach((b,i) => b.classList.toggle('active', i===0));
+  applyFilters();
 }
 
 function filterCat(btn, cat) {
@@ -169,49 +299,125 @@ function filterCat(btn, cat) {
   applyFilters();
 }
 
+function filterTag(tag) {
+  document.getElementById('searchInput').value = tag;
+  handleSearch(tag);
+}
+
+function setView(v, save=true) {
+  currentView = v;
+  if (save) localStorage.setItem('nh_view', v);
+  const grid = document.getElementById('grid');
+  grid.classList.toggle('list-view', v === 'list');
+  document.getElementById('gridBtn').classList.toggle('active', v === 'grid');
+  document.getElementById('listBtn').classList.toggle('active', v === 'list');
+}
+
 function renderTools(tools) {
   const grid = document.getElementById('grid');
-  if (!tools.length) { grid.innerHTML = '<div class="empty"><div class="emoji">🔍</div><p>No tools found. Try a different search.</p></div>'; return; }
+  const count = document.getElementById('resultCount');
+  count.textContent = tools.length ? `${tools.length} tool${tools.length !== 1 ? 's' : ''}` : '';
+
+  if (!tools.length) {
+    grid.innerHTML = `
+      <div class="empty" style="grid-column:1/-1">
+        <div class="empty-icon">🔍</div>
+        <h3>No tools found</h3>
+        <p>Try a different search or clear your filters.</p>
+        <button class="empty-action" onclick="clearSearch();clearCat()">Clear filters</button>
+      </div>`;
+    return;
+  }
+
   const savedIds = currentUser?.savedTools || [];
   grid.innerHTML = tools.map(t => {
     const isSaved = savedIds.includes(t._id);
+    const stars = renderStars(t.averageRating);
+    const tags = (t.tags||[]).slice(0,3).map(tg =>
+      `<span class="tag" onclick="event.stopPropagation();filterTag('${tg}')">#${tg}</span>`
+    ).join('');
+
     return `
-    <div class="card" onclick="goToTool('${t.slug}')">
+    <div class="tool-card" onclick="goToTool('${t.slug}')"
+         onmousemove="trackMouse(event,this)" onmouseleave="resetMouse(this)">
       <div class="card-top">
         <div class="card-icon" style="background:${iconBg[t.category]||'rgba(255,255,255,0.05)'}">${t.icon}</div>
-        <span class="badge badge-${t.badge}">${t.badge.toUpperCase()}</span>
+        <div class="card-badges">
+          <span class="badge badge-${t.badge}">${t.badge.toUpperCase()}</span>
+        </div>
       </div>
-      <div class="card-name">${t.name}</div>
-      <div class="card-desc">${t.description}</div>
+      <div class="card-body">
+        <div class="card-name">${t.name}</div>
+        <div class="card-desc">${t.description}</div>
+        <div class="card-tags">${tags}</div>
+      </div>
       <div class="card-footer">
-        <div class="card-meta">
+        <div class="card-stats">
+          <div class="stat-item">${stars} <span style="margin-left:3px">${t.averageRating || '—'}</span></div>
+          <div class="stat-item">👤 ${fmtNum(t.usageCount)}</div>
+        </div>
+        <div class="card-actions">
+          <button class="save-btn ${isSaved?'saved':''}" title="${isSaved?'Saved':'Save'}"
+            onclick="event.stopPropagation();toggleSave(event,'${t._id}',this)">
+            ${isSaved ? '🔖' : '🔖'}
+          </button>
+          <button class="try-btn" onclick="event.stopPropagation();goToTool('${t.slug}')">Try →</button>
+        </div>
+      </div>
+      <!-- List view only -->
+      <div class="card-actions-inline">
+        <div class="card-stats-inline">
           <span>⭐ ${t.averageRating || '—'}</span>
           <span>👤 ${fmtNum(t.usageCount)}</span>
         </div>
-        <div style="display:flex;gap:10px;align-items:center">
-          <button class="save-btn ${isSaved?'saved':''}" title="${isSaved?'Unsave':'Save'}" onclick="toggleSave(event,'${t._id}',this)">${isSaved?'🔖':'🔖'}</button>
-          <button class="view-btn">View →</button>
-        </div>
+        <button class="try-btn" onclick="event.stopPropagation();goToTool('${t.slug}')">Try →</button>
       </div>
     </div>`;
   }).join('');
+
+  if (window.animateCards) window.animateCards('grid');
 }
 
-function fmtNum(n) { return n >= 1000 ? (n/1000).toFixed(0)+'K' : n; }
+function renderStars(rating) {
+  if (!rating) return '<span class="star-filled">☆</span>';
+  const full = Math.floor(rating);
+  const half = rating % 1 >= 0.5;
+  return Array.from({length:5}, (_,i) =>
+    `<span class="${i < full ? 'star-filled' : ''}" style="font-size:0.75rem">${i < full ? '★' : (i === full && half ? '⭐' : '☆')}</span>`
+  ).join('');
+}
 
+function trackMouse(e, card) {
+  const r = card.getBoundingClientRect();
+  card.style.setProperty('--mx', ((e.clientX - r.left) / r.width * 100) + '%');
+  card.style.setProperty('--my', ((e.clientY - r.top) / r.height * 100) + '%');
+}
+function resetMouse(card) { card.style.removeProperty('--mx'); card.style.removeProperty('--my'); }
+
+function fmtNum(n) { return n >= 1000 ? (n/1000).toFixed(0)+'K' : n; }
 function goToTool(slug) { window.location.href = `tool-detail.html?slug=${slug}`; }
 
 async function toggleSave(e, id, btn) {
   e.stopPropagation();
-  if (!currentUser) { alert('Please log in to save tools.'); return; }
+  if (!currentUser) { showToast('Log in to save tools'); return; }
   try {
     const r = await fetch(`${API}/tools/${id}/save`, { method:'POST', headers:{ Authorization:`Bearer ${token}` } });
     const d = await r.json();
     if (d.success) {
-      btn.classList.toggle('saved', d.saved);
+      const saved = d.saved;
+      btn.classList.toggle('saved', saved);
+      btn.title = saved ? 'Saved' : 'Save';
       currentUser.savedTools = d.savedTools;
+      showToast(saved ? '🔖 Tool saved!' : 'Removed from saved');
     }
   } catch(_) {}
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
 }
 
 function renderNav() {
@@ -228,5 +434,6 @@ function logout() { localStorage.removeItem('nh_token'); window.location.href = 
 
 init();
 </script>
+<script src="animations.js"></script>
 </body>
 </html>
