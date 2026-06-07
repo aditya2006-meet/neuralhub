@@ -32,7 +32,8 @@ router.post('/create-checkout', protect, async (req, res) => {
 });
 
 // ─── Stripe webhook (upgrade user to pro) ───────────────────────────────────
-router.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
+// Note: express.raw() is already applied globally in server.js for this path — don't add it again here
+router.post('/webhook', async (req, res) => {
   if (!stripe) return res.sendStatus(400);
   const sig = req.headers['stripe-signature'];
   let event;
@@ -45,7 +46,7 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
     const session = event.data.object;
     const userId = session.metadata?.userId;
     if (userId) {
-      await User.findByIdAndUpdate(userId, { role: 'developer' });
+      await User.findByIdAndUpdate(userId, { plan: 'pro' });
     }
   }
   res.sendStatus(200);
