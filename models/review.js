@@ -13,7 +13,7 @@ reviewSchema.index({ tool: 1, user: 1 }, { unique: true });
 
 // Auto-update tool average rating after save
 reviewSchema.post('save', async function() {
-  const Tool = require('./Tool');
+  const Tool = require('./tool');
   const stats = await mongoose.model('Review').aggregate([
     { $match: { tool: this.tool } },
     { $group: { _id: '$tool', avg: { $avg: '$rating' }, count: { $sum: 1 } } }
