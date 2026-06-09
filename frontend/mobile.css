@@ -1,0 +1,186 @@
+/* ═══════════════════════════════════════════════════
+   NeuralHub — Mobile Responsiveness
+   Include via <link rel="stylesheet" href="mobile.css">
+   in the <head> of every page (after existing styles)
+═══════════════════════════════════════════════════ */
+
+/* ── Hamburger button ──────────────────────────────── */
+.hamburger {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  z-index: 201;
+}
+.hamburger span {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: var(--text, #e8edf2);
+  border-radius: 2px;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+.hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.hamburger.open span:nth-child(2) { opacity: 0; }
+.hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+/* ── Mobile nav drawer ─────────────────────────────── */
+.mobile-drawer {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  z-index: 199;
+  background: rgba(8,12,16,0.98);
+  backdrop-filter: blur(16px);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  animation: drawerIn 0.25s ease;
+}
+.mobile-drawer.open { display: flex; }
+@keyframes drawerIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.mobile-drawer a,
+.mobile-drawer button.mob-link {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--text, #e8edf2);
+  text-decoration: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.mobile-drawer a:hover,
+.mobile-drawer button.mob-link:hover { color: var(--accent, #00e5b0); }
+.mobile-drawer .mob-divider {
+  width: 40px; height: 1px;
+  background: rgba(255,255,255,0.1);
+}
+.mobile-drawer .mob-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+.mobile-drawer .mob-actions button,
+.mobile-drawer .mob-actions a {
+  font-size: 0.95rem;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 500;
+  width: 200px;
+  text-align: center;
+  padding: 0.75rem;
+  border-radius: 100px;
+}
+
+/* ── Base mobile breakpoint (≤768px) ───────────────── */
+@media (max-width: 768px) {
+
+  /* Show hamburger, hide desktop nav */
+  .hamburger { display: flex; }
+  .nav-links  { display: none !important; }
+  .nav-right  { display: none !important; }
+
+  /* Nav padding */
+  nav { padding: 1rem 1.25rem !important; }
+
+  /* Hero */
+  .hero {
+    padding: 7rem 1.25rem 4rem !important;
+    min-height: auto !important;
+  }
+  .hero h1 { font-size: clamp(2.2rem, 9vw, 3.2rem) !important; }
+  .hero p  { font-size: 1rem !important; }
+  .hero-actions {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.75rem !important;
+  }
+  .hero-actions a,
+  .hero-actions button {
+    text-align: center !important;
+    justify-content: center !important;
+  }
+  .hero-stats {
+    gap: 1.5rem !important;
+    margin-top: 3rem !important;
+  }
+  .hglow { width: 320px !important; height: 320px !important; }
+
+  /* Sections */
+  section { padding: 3.5rem 1.25rem !important; }
+
+  /* Grids → single column */
+  .tools-grid,
+  .test-grid,
+  .pricing-grid,
+  .steps { grid-template-columns: 1fr !important; }
+
+  /* Footer */
+  footer {
+    grid-template-columns: 1fr !important;
+    padding: 2.5rem 1.25rem !important;
+    gap: 1.5rem !important;
+  }
+  .footer-bottom {
+    padding: 1.25rem !important;
+    flex-direction: column !important;
+    gap: 0.4rem !important;
+    text-align: center !important;
+  }
+
+  /* Modals full-screen on small phones */
+  .modal {
+    padding: 2rem 1.25rem !important;
+    border-radius: 20px !important;
+    max-width: calc(100vw - 2rem) !important;
+  }
+
+  /* Tools page */
+  .cats { gap: 0.4rem !important; }
+  .cat  { font-size: 0.78rem !important; padding: 0.38rem 0.85rem !important; }
+  .page { padding: 6rem 1.25rem 3rem !important; }
+
+  /* Dashboard — stack layout, show content without sidebar */
+  .layout {
+    grid-template-columns: 1fr !important;
+    padding: 6rem 1.25rem 3rem !important;
+    gap: 1.5rem !important;
+  }
+  .sidebar { display: none !important; }
+  .stats-row { grid-template-columns: repeat(2, 1fr) !important; }
+  .row2 { grid-template-columns: 1fr !important; }
+
+  /* Tool detail */
+  .hero-section { grid-template-columns: 1fr !important; }
+  .tool-tabs    { overflow-x: auto; white-space: nowrap; }
+
+  /* Pricing */
+  .pricing-grid { gap: 1rem !important; }
+  .pricing-card.featured { order: -1; }
+
+  /* Submit page */
+  .form-grid { grid-template-columns: 1fr !important; }
+  .submit-layout { grid-template-columns: 1fr !important; padding: 6rem 1.25rem 3rem !important; }
+
+  /* Generic page headers */
+  .page-title { font-size: clamp(1.8rem, 7vw, 2.4rem) !important; }
+}
+
+/* ── Small phones (≤390px) ─────────────────────────── */
+@media (max-width: 390px) {
+  .hero h1     { font-size: 2rem !important; }
+  .stat-num    { font-size: 1.5rem !important; }
+  .hero-stats  { gap: 1rem !important; }
+  .modal       { padding: 1.75rem 1rem !important; }
+  .stats-row   { grid-template-columns: 1fr !important; }
+}
