@@ -21,9 +21,9 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
 .user-dropdown a,.user-dropdown button{display:block;width:100%;text-align:left;padding:.5rem .85rem;font-size:.85rem;color:var(--muted);text-decoration:none;background:none;border:none;cursor:pointer;border-radius:8px;font-family:'DM Sans',sans-serif;transition:all .15s}
 .user-dropdown a:hover,.user-dropdown button:hover{background:rgba(255,255,255,.05);color:var(--text)}
 .user-dropdown .logout-btn{color:var(--accent3)}
-.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;background:rgba(0,0,0,.85);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;padding:1rem}
+.modal-overlay{position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:9999;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;padding:1rem;overflow-y:auto}
 .modal-overlay.open{display:flex}
-.modal{background:var(--surface);border:1px solid var(--border);border-radius:24px;padding:2rem;width:calc(100% - 2rem);max-width:420px;max-height:85vh;overflow-y:auto;position:relative;animation:mIn .25s ease}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:24px;padding:2rem;width:100%;max-width:420px;max-height:90vh;overflow-y:auto;position:relative;animation:mIn .25s ease;margin:auto}
 @keyframes mIn{from{opacity:0;transform:scale(.95) translateY(12px)}to{opacity:1;transform:scale(1) translateY(0)}}
 .modal-close{position:absolute;top:1.25rem;right:1.25rem;background:none;border:none;color:var(--muted);font-size:1.4rem;cursor:pointer}
 .modal-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.2rem;margin-bottom:.25rem}.modal-logo span{color:var(--accent)}
@@ -271,7 +271,7 @@ function renderNav(){
 }
 
 function openModal(t){document.getElementById('authModal').classList.add('open');switchTab(t);clearM();}
-function closeModal(){document.getElementById('authModal').classList.remove('open');}
+function closeModal(){ document.body.style.overflow="";document.getElementById('authModal').classList.remove('open');}
 function closeOut(e){if(e.target===document.getElementById('authModal'))closeModal();}
 function switchTab(t){const il=t==='login';document.getElementById('loginForm').style.display=il?'block':'none';document.getElementById('signupForm').style.display=il?'none':'block';document.getElementById('tLogin').classList.toggle('active',il);document.getElementById('tSignup').classList.toggle('active',!il);document.getElementById('mSub').textContent=il?'Welcome back! Sign in to continue.':'Join 84,000+ developers building with AI.';clearM();}
 function setRole(r){currentRole=r;document.getElementById('rUser').classList.toggle('selected',r==='user');document.getElementById('rDev').classList.toggle('selected',r==='developer');}
