@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>NeuralHub — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="mobile.css"/>
+<style>
+  :root{--bg:#080c10;--surface:#0e1318;--surface2:#131920;--border:rgba(255,255,255,0.07);--accent:#00e5b0;--accent2:#4f8fff;--accent3:#ff6b6b;--text:#e8edf2;--muted:#6b7a8d;--r:16px}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh}
+
+  nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:1rem 3rem;background:rgba(8,12,16,0.9);backdrop-filter:blur(16px);border-bottom:1px solid var(--border)}
+  .logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.3rem;color:var(--text);text-decoration:none}.logo span{color:var(--accent)}
+  .nav-links{display:flex;gap:2rem;list-style:none}.nav-links a{color:var(--muted);text-decoration:none;font-size:0.9rem;transition:color 0.2s}.nav-links a:hover,.nav-links a.active{color:var(--text)}
+  .btn-ghost{background:transparent;border:1px solid var(--border);color:var(--muted);padding:0.5rem 1.2rem;border-radius:100px;font-size:0.88rem;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.2s}.btn-ghost:hover{color:var(--text)}
+  .btn-accent{background:var(--accent);color:#080c10;padding:0.5rem 1.4rem;border-radius:100px;font-size:0.88rem;font-weight:500;border:none;cursor:pointer;font-family:'DM Sans',sans-serif}
+  .btn-danger{background:rgba(255,107,107,0.1);color:var(--accent3);border:1px solid rgba(255,107,107,0.2);padding:0.5rem 1.2rem;border-radius:100px;font-size:0.85rem;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.2s}.btn-danger:hover{background:rgba(255,107,107,0.2)}
+
+  .layout{display:grid;grid-template-columns:240px 1fr;gap:2rem;max-width:1200px;margin:0 auto;padding:7rem 3rem 4rem}
+
+  /* SIDEBAR */
+  .profile-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1.5rem;text-align:center;margin-bottom:1rem;position:relative;overflow:hidden}
+  .profile-card::before{content:'';position:absolute;top:-30px;left:50%;transform:translateX(-50%);width:120px;height:120px;background:radial-gradient(circle,rgba(0,229,176,0.12),transparent 70%);pointer-events:none}
+  .profile-avatar{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,rgba(0,229,176,0.3),rgba(79,143,255,0.2));color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:700;margin:0 auto 0.75rem;border:2px solid rgba(0,229,176,0.2)}
+  .profile-name{font-family:'Syne',sans-serif;font-size:1.05rem;font-weight:600;margin-bottom:0.2rem}
+  .profile-email{font-size:0.78rem;color:var(--muted);margin-bottom:0.6rem}
+  .plan-badge{display:inline-flex;align-items:center;gap:5px;font-size:0.72rem;padding:0.22rem 0.75rem;border-radius:100px}
+  .plan-free{background:rgba(0,229,176,0.1);color:var(--accent);border:1px solid rgba(0,229,176,0.2)}
+  .plan-pro{background:rgba(79,143,255,0.15);color:var(--accent2);border:1px solid rgba(79,143,255,0.3)}
+
+  /* API usage bar */
+  .usage-bar-wrap{margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border);display:none}
+  .usage-bar-wrap.show{display:block}
+  .usage-label{display:flex;justify-content:space-between;font-size:0.75rem;color:var(--muted);margin-bottom:5px}
+  .usage-bar{height:4px;background:rgba(255,255,255,0.06);border-radius:100px;overflow:hidden}
+  .usage-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:100px;transition:width 0.8s cubic-bezier(.22,1,.36,1);width:0%}
+  .usage-fill.warn{background:linear-gradient(90deg,#f59e0b,var(--accent3))}
+  .upgrade-link{display:block;text-align:center;margin-top:0.75rem;font-size:0.75rem;color:var(--accent2);cursor:pointer;text-decoration:none}
+  .upgrade-link:hover{text-decoration:underline}
+
+  .sidebar-nav{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:0.5rem;overflow:hidden}
+  .sidebar-link{display:flex;align-items:center;gap:10px;padding:0.7rem 1rem;border-radius:10px;font-size:0.88rem;color:var(--muted);cursor:pointer;transition:all 0.15s;border:none;background:none;width:100%;text-align:left;font-family:'DM Sans',sans-serif}
+  .sidebar-link:hover{background:rgba(255,255,255,0.04);color:var(--text)}
+  .sidebar-link.active{background:rgba(0,229,176,0.1);color:var(--accent)}
+  .sidebar-link .icon{font-size:1rem;width:20px;text-align:center}
+
+  /* MAIN */
+  .tab-content{display:none}.tab-content.active{display:block}
+  .section-title{font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:700;letter-spacing:-0.01em;margin-bottom:1.5rem}
+
+  /* WELCOME BANNER */
+  .welcome-banner{background:linear-gradient(135deg,rgba(0,229,176,0.08),rgba(79,143,255,0.06));border:1px solid rgba(0,229,176,0.12);border-radius:var(--r);padding:1.5rem 2rem;margin-bottom:1.5rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+  .welcome-text h2{font-family:'Syne',sans-serif;font-size:1.3rem;font-weight:700;margin-bottom:0.3rem}
+  .welcome-text p{font-size:0.85rem;color:var(--muted)}
+  .welcome-actions{display:flex;gap:0.75rem;flex-wrap:wrap}
+
+  /* STATS */
+  .stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem}
+  .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1.25rem;position:relative;overflow:hidden;transition:border-color 0.2s}
+  .stat-card:hover{border-color:rgba(255,255,255,0.12)}
+  .stat-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--accent-line,var(--accent));opacity:0.3}
+  .stat-label{font-size:0.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.6rem;display:flex;align-items:center;gap:6px}
+  .stat-value{font-family:'Syne',sans-serif;font-size:2rem;font-weight:700;line-height:1}
+  .stat-sub{font-size:0.75rem;color:var(--muted);margin-top:0.4rem}
+  .stat-trend{font-size:0.72rem;color:var(--accent);margin-top:0.3rem}
+
+  /* API USAGE STAT CARD */
+  .api-stat-bar{height:3px;background:rgba(255,255,255,0.06);border-radius:100px;margin-top:0.75rem;overflow:hidden}
+  .api-stat-fill{height:100%;border-radius:100px;transition:width 1s cubic-bezier(.22,1,.36,1)}
+
+  /* ACTIVITY FEED */
+  .section-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem}
+  .card-block{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1.25rem}
+  .card-block h3{font-family:'Syne',sans-serif;font-size:0.95rem;font-weight:600;margin-bottom:1rem;color:var(--text)}
+  .activity-list{display:flex;flex-direction:column;gap:0.6rem}
+  .activity-item{display:flex;align-items:flex-start;gap:10px;padding:0.6rem;border-radius:10px;transition:background 0.15s}
+  .activity-item:hover{background:rgba(255,255,255,0.03)}
+  .activity-dot{width:8px;height:8px;border-radius:50%;margin-top:5px;flex-shrink:0}
+  .dot-save{background:var(--accent)}
+  .dot-login{background:var(--accent2)}
+  .dot-plan{background:#f59e0b}
+  .activity-text{font-size:0.82rem;color:var(--text);line-height:1.4}
+  .activity-time{font-size:0.72rem;color:var(--muted);margin-top:2px}
+
+  /* QUICK ACTIONS */
+  .quick-actions{display:grid;grid-template-columns:1fr 1fr;gap:0.6rem}
+  .qa-btn{display:flex;align-items:center;gap:10px;padding:0.85rem 1rem;background:var(--surface2);border:1px solid var(--border);border-radius:12px;cursor:pointer;transition:all 0.2s;font-family:'DM Sans',sans-serif;font-size:0.85rem;color:var(--text);text-align:left}
+  .qa-btn:hover{border-color:rgba(0,229,176,0.25);background:rgba(0,229,176,0.04)}
+  .qa-icon{font-size:1.1rem;width:24px;text-align:center}
+  .qa-label{font-weight:500}
+  .qa-sub{font-size:0.72rem;color:var(--muted)}
+
+  /* SAVED TOOLS */
+  .saved-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1rem}
+  .saved-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1.25rem;transition:all 0.2s;cursor:pointer}
+  .saved-card:hover{border-color:rgba(255,255,255,0.14);transform:translateY(-2px)}
+  .saved-icon{font-size:1.6rem;margin-bottom:0.6rem}
+  .saved-name{font-family:'Syne',sans-serif;font-size:0.95rem;font-weight:600;margin-bottom:0.3rem}
+  .saved-desc{font-size:0.8rem;color:var(--muted);line-height:1.5}
+  .saved-footer{display:flex;justify-content:space-between;align-items:center;margin-top:0.85rem;padding-top:0.75rem;border-top:1px solid var(--border)}
+  .unsave-btn{font-size:0.75rem;color:var(--accent3);background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif}
+  .open-btn{font-size:0.75rem;color:var(--accent);background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif}
+  .empty-state{text-align:center;padding:3rem;color:var(--muted)}
+  .empty-state .e-icon{font-size:2.5rem;margin-bottom:0.75rem}
+
+  /* FORMS */
+  .form-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1.5rem;margin-bottom:1.25rem}
+  .form-card h3{font-family:'Syne',sans-serif;font-size:1rem;font-weight:600;margin-bottom:1.25rem}
+  .field{margin-bottom:1rem}
+  .field label{display:block;font-size:0.82rem;font-weight:500;color:var(--muted);margin-bottom:6px}
+  .field input{width:100%;padding:0.72rem 1rem;background:var(--bg);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.9rem;outline:none;transition:border-color 0.2s}
+  .field input:focus{border-color:rgba(0,229,176,0.4)}
+  .field input::placeholder{color:var(--muted)}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+  .save-btn{padding:0.65rem 1.4rem;background:var(--accent);color:#080c10;border:none;border-radius:100px;font-size:0.88rem;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:opacity 0.2s}
+  .save-btn:hover{opacity:0.85}
+  .success-msg{color:var(--accent);font-size:0.82rem;margin-left:1rem;display:none}
+  .success-msg.show{display:inline}
+  .error-msg{color:var(--accent3);font-size:0.82rem;margin-left:1rem;display:none}
+  .error-msg.show{display:inline}
+
+  /* API KEY */
+  .api-key-box{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:0.8rem 1rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;font-family:monospace;font-size:0.88rem;color:var(--muted)}
+  .copy-btn{padding:0.45rem 1rem;background:var(--surface2);border:1px solid var(--border);border-radius:100px;font-size:0.8rem;cursor:pointer;color:var(--text);font-family:'DM Sans',sans-serif;transition:all 0.2s;white-space:nowrap}
+  .copy-btn:hover{border-color:rgba(0,229,176,0.3);color:var(--accent)}
+  .api-hint{font-size:0.8rem;color:var(--muted);margin-top:0.75rem;line-height:1.6}
+
+  /* PLAN CARD */
+  .plan-card{background:linear-gradient(135deg,rgba(0,229,176,0.06),rgba(79,143,255,0.04));border:1px solid rgba(0,229,176,0.12);border-radius:var(--r);padding:1.5rem;margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+  .plan-info h3{font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700;margin-bottom:0.3rem}
+  .plan-info p{font-size:0.83rem;color:var(--muted)}
+  .plan-features{display:flex;flex-wrap:wrap;gap:0.5rem;margin-top:0.75rem}
+  .plan-feature{font-size:0.75rem;padding:0.2rem 0.65rem;background:rgba(0,229,176,0.08);border:1px solid rgba(0,229,176,0.15);border-radius:100px;color:var(--accent)}
+
+  /* Toast */
+  .toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(20px);background:var(--surface2);border:1px solid var(--border);border-radius:100px;padding:0.6rem 1.5rem;font-size:0.85rem;opacity:0;transition:all 0.3s;z-index:999;pointer-events:none;white-space:nowrap}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  @media(max-width:900px){.layout{grid-template-columns:1fr}.sidebar{display:none}.stats-row{grid-template-columns:repeat(2,1fr)}.section-row{grid-template-columns:1fr}}
+  @media(max-width:480px){.stats-row{grid-template-columns:1fr}.quick-actions{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<nav>
+  <a href="index.html" class="logo">Neural<span>Hub</span></a>
+  <ul class="nav-links">
+    <li><a href="tools.html">Explore</a></li>
+    <li><a href="dashboard.html" class="active">Dashboard</a></li>
+  </ul>
+  <div style="display:flex;gap:0.75rem">
+    <button class="btn-ghost" onclick="logout()">Log out</button>
+  </div>
+</nav>
+
+<div class="layout">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="profile-card">
+      <div class="profile-avatar" id="sideAvatar">?</div>
+      <div class="profile-name" id="sideName">Loading…</div>
+      <div class="profile-email" id="sideEmail"></div>
+      <div class="plan-badge plan-free" id="sidePlan">Free</div>
+
+      <!-- API Usage bar (free users only) -->
+      <div class="usage-bar-wrap" id="usageBarWrap">
+        <div class="usage-label">
+          <span>API calls today</span>
+          <span id="usageText">0 / 100</span>
+        </div>
+        <div class="usage-bar"><div class="usage-fill" id="usageFill"></div></div>
+        <a class="upgrade-link" href="pricing.html">Upgrade for unlimited →</a>
+      </div>
+    </div>
+
+    <div class="sidebar-nav">
+      <button class="sidebar-link active" onclick="switchTab('overview',this)"><span class="icon">🏠</span> Overview</button>
+      <button class="sidebar-link" onclick="switchTab('saved',this)"><span class="icon">🔖</span> Saved Tools</button>
+      <button class="sidebar-link" onclick="switchTab('profile',this)"><span class="icon">👤</span> Edit Profile</button>
+      <button class="sidebar-link" onclick="switchTab('apikeys',this)"><span class="icon">🔑</span> API Keys</button>
+      <button class="sidebar-link" onclick="switchTab('security',this)"><span class="icon">🔒</span> Security</button>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- OVERVIEW -->
+    <div class="tab-content active" id="tab-overview">
+      <div class="welcome-banner">
+        <div class="welcome-text">
+          <h2>Welcome back, <span id="welcomeName">—</span> 👋</h2>
+          <p>Here's what's happening with your account today.</p>
+        </div>
+        <div class="welcome-actions">
+          <button class="btn-accent" onclick="window.location.href='tools.html'">Browse Tools</button>
+          <button class="btn-ghost" onclick="switchTab('saved',document.querySelectorAll('.sidebar-link')[1])">View Saved</button>
+        </div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-card" style="--accent-line:var(--accent)">
+          <div class="stat-label">🔖 Saved Tools</div>
+          <div class="stat-value" id="statSaved">0</div>
+          <div class="stat-sub">in your collection</div>
+        </div>
+        <div class="stat-card" style="--accent-line:var(--accent2)">
+          <div class="stat-label">⚡ API Calls Today</div>
+          <div class="stat-value" id="statCalls">0</div>
+          <div class="stat-sub" id="statCallsSub">of 100 free calls</div>
+          <div class="api-stat-bar"><div class="api-stat-fill" id="apiStatFill" style="background:var(--accent);width:0%"></div></div>
+        </div>
+        <div class="stat-card" style="--accent-line:#f59e0b">
+          <div class="stat-label">🗓 Member Since</div>
+          <div class="stat-value" style="font-size:1.1rem;padding-top:8px" id="statSince">—</div>
+          <div class="stat-sub" id="statDays"></div>
+        </div>
+      </div>
+
+      <div class="section-row">
+        <!-- Activity feed -->
+        <div class="card-block">
+          <h3>Recent Activity</h3>
+          <div class="activity-list" id="activityList">
+            <div class="activity-item">
+              <div class="activity-dot dot-login"></div>
+              <div><div class="activity-text">Logged into dashboard</div><div class="activity-time">Just now</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick actions -->
+        <div class="card-block">
+          <h3>Quick Actions</h3>
+          <div class="quick-actions">
+            <button class="qa-btn" onclick="window.location.href='tools.html'">
+              <span class="qa-icon">🔍</span>
+              <div><div class="qa-label">Browse Tools</div><div class="qa-sub">Explore the catalog</div></div>
+            </button>
+            <button class="qa-btn" onclick="switchTab('saved',document.querySelectorAll('.sidebar-link')[1])">
+              <span class="qa-icon">🔖</span>
+              <div><div class="qa-label">Saved Tools</div><div class="qa-sub" id="qaSubSaved">0 saved</div></div>
+            </button>
+            <button class="qa-btn" onclick="switchTab('apikeys',document.querySelectorAll('.sidebar-link')[3])">
+              <span class="qa-icon">🔑</span>
+              <div><div class="qa-label">API Keys</div><div class="qa-sub">View & copy key</div></div>
+            </button>
+            <button class="qa-btn" onclick="window.location.href='pricing.html'">
+              <span class="qa-icon">⚡</span>
+              <div><div class="qa-label">Upgrade Plan</div><div class="qa-sub">Unlock unlimited</div></div>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Plan card -->
+      <div class="plan-card" id="planCard">
+        <div class="plan-info">
+          <h3 id="planTitle">Free Plan</h3>
+          <p id="planDesc">You're on the free plan. Upgrade to Pro for unlimited API calls, priority support, and more.</p>
+          <div class="plan-features" id="planFeatures"></div>
+        </div>
+        <button class="btn-accent" id="planBtn" onclick="window.location.href='pricing.html'">Upgrade to Pro →</button>
+      </div>
+    </div>
+
+    <!-- SAVED TOOLS -->
+    <div class="tab-content" id="tab-saved">
+      <div class="section-title">Saved Tools</div>
+      <div class="saved-grid" id="savedGrid">
+        <p class="empty-state"><span class="e-icon">🔖</span><br/>Loading…</p>
+      </div>
+    </div>
+
+    <!-- PROFILE -->
+    <div class="tab-content" id="tab-profile">
+      <div class="section-title">Edit Profile</div>
+      <div class="form-card">
+        <h3>Personal information</h3>
+        <div class="row2">
+          <div class="field"><label>Full name</label><input type="text" id="editName"/></div>
+          <div class="field"><label>Email</label><input type="email" id="editEmail" disabled style="opacity:0.5;cursor:not-allowed"/></div>
+        </div>
+        <div class="field"><label>Bio</label><input type="text" id="editBio" placeholder="Tell us about yourself…"/></div>
+        <button class="save-btn" onclick="saveProfile()">Save changes</button>
+        <span class="success-msg" id="profileMsg">✓ Saved!</span>
+      </div>
+    </div>
+
+    <!-- API KEYS -->
+    <div class="tab-content" id="tab-apikeys">
+      <div class="section-title">API Keys</div>
+      <div class="form-card">
+        <h3>Your API Key</h3>
+        <div class="api-key-box">
+          <span id="apiKeyDisplay">nh_••••••••••••••••••••••••••••••••</span>
+          <button class="copy-btn" onclick="toggleKey()">Show key</button>
+        </div>
+        <div class="api-hint">Use this key to authenticate requests to the NeuralHub API.<br/><strong style="color:var(--text)">Keep it secret</strong> — never expose it in public code.</div>
+        <div style="margin-top:1.25rem;display:flex;gap:0.75rem">
+          <button class="save-btn" onclick="copyKey()">Copy key</button>
+          <button class="btn-ghost" onclick="regenKey()">Regenerate</button>
+        </div>
+      </div>
+      <div class="form-card">
+        <h3>Usage this month</h3>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem">
+          <span style="font-size:0.85rem;color:var(--muted)">API calls today</span>
+          <span style="font-family:'Syne',sans-serif;font-weight:700" id="apiCallsDetail">0 / 100</span>
+        </div>
+        <div class="usage-bar" style="height:6px"><div class="usage-fill" id="usageFill2"></div></div>
+        <p style="font-size:0.78rem;color:var(--muted);margin-top:0.75rem">Counter resets daily at midnight. <a href="pricing.html" style="color:var(--accent2)">Upgrade for unlimited →</a></p>
+      </div>
+    </div>
+
+    <!-- SECURITY -->
+    <div class="tab-content" id="tab-security">
+      <div class="section-title">Security</div>
+      <div class="form-card">
+        <h3>Change password</h3>
+        <div class="field"><label>Current password</label><input type="password" id="currentPw" placeholder="••••••••"/></div>
+        <div class="row2">
+          <div class="field"><label>New password</label><input type="password" id="newPw" placeholder="At least 6 characters"/></div>
+          <div class="field"><label>Confirm password</label><input type="password" id="confirmPw" placeholder="Repeat new password"/></div>
+        </div>
+        <button class="save-btn" onclick="changePassword()">Update password</button>
+        <span class="success-msg" id="pwMsg">✓ Password updated!</span>
+        <span class="error-msg" id="pwErr"></span>
+      </div>
+      <div class="form-card" style="border-color:rgba(255,107,107,0.2)">
+        <h3 style="color:var(--accent3)">Danger Zone</h3>
+        <p style="font-size:0.85rem;color:var(--muted);margin-bottom:1rem">Permanently delete your account and all data. This cannot be undone.</p>
+        <button class="btn-danger" onclick="deleteAccount()">Delete account</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = 'https://neuralhub-backend.onrender.com/api';
+let token = localStorage.getItem('nh_token');
+let currentUser = null;
+let apiKeyVisible = false;
+let fakeKey = null;
+
+const FREE_LIMIT = 100;
+
+async function init() {
+  if (!token) { window.location.href = 'index.html'; return; }
+  await loadUser();
+  if (!currentUser) { window.location.href = 'index.html'; return; }
+  populateUI();
+  loadSavedTools();
+}
+
+async function loadUser() {
+  try {
+    const r = await fetch(`${API}/auth/me`, { headers:{ Authorization:`Bearer ${token}` } });
+    if (!r.ok) { token = null; localStorage.removeItem('nh_token'); return; }
+    currentUser = (await r.json()).user;
+  } catch(_) {}
+}
+
+function populateUI() {
+  const u = currentUser;
+  const ini = u.name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+  const isPro = u.plan === 'pro';
+
+  // Sidebar
+  document.getElementById('sideAvatar').textContent = ini;
+  document.getElementById('sideName').textContent = u.name;
+  document.getElementById('sideEmail').textContent = u.email;
+  const planBadge = document.getElementById('sidePlan');
+  planBadge.textContent = isPro ? '⚡ Pro' : '✦ Free';
+  planBadge.className = 'plan-badge ' + (isPro ? 'plan-pro' : 'plan-free');
+
+  // API usage bar (free users)
+  const calls = u.apiCallsToday || 0;
+  const pct = Math.min((calls / FREE_LIMIT) * 100, 100);
+  if (!isPro) {
+    document.getElementById('usageBarWrap').classList.add('show');
+    document.getElementById('usageText').textContent = `${calls} / ${FREE_LIMIT}`;
+    setTimeout(() => {
+      const fill = document.getElementById('usageFill');
+      fill.style.width = pct + '%';
+      if (pct >= 80) fill.classList.add('warn');
+    }, 400);
+  }
+
+  // Welcome
+  document.getElementById('welcomeName').textContent = u.name.split(' ')[0];
+
+  // Stats
+  document.getElementById('statSaved').textContent = u.savedTools?.length || 0;
+  document.getElementById('qaSubSaved').textContent = (u.savedTools?.length || 0) + ' saved';
+  document.getElementById('statCalls').textContent = calls;
+  document.getElementById('statCallsSub').textContent = isPro ? 'unlimited (Pro)' : `of ${FREE_LIMIT} free calls`;
+  setTimeout(() => {
+    const fill = document.getElementById('apiStatFill');
+    fill.style.width = isPro ? '100%' : pct + '%';
+    fill.style.background = isPro ? 'linear-gradient(90deg,var(--accent),var(--accent2))' : pct >= 80 ? 'linear-gradient(90deg,#f59e0b,var(--accent3))' : 'var(--accent)';
+  }, 600);
+
+  const joined = new Date(u.createdAt);
+  document.getElementById('statSince').textContent = joined.toLocaleDateString('en-US',{month:'short',year:'numeric'});
+  const days = Math.floor((Date.now() - joined) / 86400000);
+  document.getElementById('statDays').textContent = days === 0 ? 'Joined today!' : `${days} day${days !== 1 ? 's' : ''} ago`;
+
+  // Profile form
+  document.getElementById('editName').value = u.name;
+  document.getElementById('editEmail').value = u.email;
+  document.getElementById('editBio').value = u.bio || '';
+
+  // API key
+  fakeKey = 'nh_' + btoa(u._id).replace(/[^a-z0-9]/gi,'').slice(0,32);
+
+  // API key usage detail
+  document.getElementById('apiCallsDetail').textContent = isPro ? '∞ unlimited' : `${calls} / ${FREE_LIMIT}`;
+  setTimeout(() => {
+    const f2 = document.getElementById('usageFill2');
+    f2.style.width = isPro ? '100%' : pct + '%';
+    if (pct >= 80) f2.classList.add('warn');
+  }, 700);
+
+  // Plan card
+  if (isPro) {
+    document.getElementById('planTitle').textContent = '⚡ Pro Plan';
+    document.getElementById('planDesc').textContent = "You're on the Pro plan. Enjoy unlimited API calls, priority support, and all premium features.";
+    document.getElementById('planBtn').textContent = 'Manage Plan';
+    document.getElementById('planFeatures').innerHTML = [
+      'Unlimited API calls','Priority support','Early access','All tools'
+    ].map(f => `<span class="plan-feature">✓ ${f}</span>`).join('');
+    document.getElementById('planCard').style.borderColor = 'rgba(79,143,255,0.2)';
+  } else {
+    document.getElementById('planFeatures').innerHTML = [
+      '100 calls/day','Community support','Basic tools'
+    ].map(f => `<span class="plan-feature">✓ ${f}</span>`).join('');
+  }
+
+  // Activity feed
+  buildActivity(u, calls);
+}
+
+function buildActivity(u, calls) {
+  const list = document.getElementById('activityList');
+  const items = [
+    { dot:'dot-login', text:'Logged into dashboard', time:'Just now' },
+  ];
+  if (calls > 0) items.push({ dot:'dot-login', text:`Made ${calls} API call${calls>1?'s':''} today`, time:'Today' });
+  if (u.savedTools?.length) items.push({ dot:'dot-save', text:`${u.savedTools.length} tool${u.savedTools.length>1?'s':''} saved in collection`, time:'This week' });
+  if (u.plan === 'pro') items.push({ dot:'dot-plan', text:'Upgraded to Pro plan', time:'Account' });
+
+  list.innerHTML = items.map(i => `
+    <div class="activity-item">
+      <div class="activity-dot ${i.dot}"></div>
+      <div><div class="activity-text">${i.text}</div><div class="activity-time">${i.time}</div></div>
+    </div>`).join('');
+}
+
+async function loadSavedTools() {
+  const grid = document.getElementById('savedGrid');
+  if (!currentUser?.savedTools?.length) {
+    grid.innerHTML = '<div class="empty-state"><div class="e-icon">🔖</div><p>No saved tools yet.<br/><a href="tools.html" style="color:var(--accent)">Browse tools →</a></p></div>';
+    return;
+  }
+  if (window.showSkeletons) window.showSkeletons('savedGrid', 3);
+  try {
+    const r = await fetch(`${API}/tools`);
+    const d = await r.json();
+    const saved = d.tools.filter(t => currentUser.savedTools.includes(t._id));
+    if (!saved.length) {
+      grid.innerHTML = '<div class="empty-state"><div class="e-icon">🔖</div><p>No saved tools yet.<br/><a href="tools.html" style="color:var(--accent)">Browse tools →</a></p></div>';
+      return;
+    }
+    grid.innerHTML = saved.map(t => `
+      <div class="saved-card">
+        <div class="saved-icon">${t.icon}</div>
+        <div class="saved-name">${t.name}</div>
+        <div class="saved-desc">${t.description.slice(0,80)}…</div>
+        <div class="saved-footer">
+          <button class="unsave-btn" onclick="unsaveTool('${t._id}')">Remove</button>
+          <button class="open-btn" onclick="window.location.href='tool-detail.html?slug=${t.slug}'">Open →</button>
+        </div>
+      </div>`).join('');
+    if (window.animateCards) window.animateCards('savedGrid');
+  } catch(_) { grid.innerHTML = '<p style="color:var(--muted);padding:2rem">Could not load saved tools.</p>'; }
+}
+
+async function unsaveTool(id) {
+  try {
+    await fetch(`${API}/tools/${id}/save`, { method:'POST', headers:{ Authorization:`Bearer ${token}` }});
+    currentUser.savedTools = currentUser.savedTools.filter(s => s !== id);
+    document.getElementById('statSaved').textContent = currentUser.savedTools.length;
+    document.getElementById('qaSubSaved').textContent = currentUser.savedTools.length + ' saved';
+    loadSavedTools();
+    showToast('Removed from saved');
+  } catch(_) {}
+}
+
+async function saveProfile() {
+  const name = document.getElementById('editName').value.trim();
+  const bio = document.getElementById('editBio').value.trim();
+  try {
+    const r = await fetch(`${API}/auth/update-profile`, { method:'PATCH', headers:{'Content-Type':'application/json', Authorization:`Bearer ${token}`}, body:JSON.stringify({name,bio})});
+    const d = await r.json();
+    if (d.success) {
+      currentUser = d.user; populateUI();
+      showSuccess('profileMsg');
+    }
+  } catch(_) { alert('Could not save. Check server connection.'); }
+}
+
+async function changePassword() {
+  const cur = document.getElementById('currentPw').value;
+  const nw = document.getElementById('newPw').value;
+  const conf = document.getElementById('confirmPw').value;
+  const errEl = document.getElementById('pwErr');
+  errEl.classList.remove('show');
+  if (!cur || !nw) { errEl.textContent='Fill in all fields.'; errEl.classList.add('show'); return; }
+  if (nw !== conf) { errEl.textContent="New passwords don't match."; errEl.classList.add('show'); return; }
+  if (nw.length < 6) { errEl.textContent='Password must be at least 6 characters.'; errEl.classList.add('show'); return; }
+  try {
+    const r = await fetch(`${API}/auth/change-password`, { method:'PATCH', headers:{'Content-Type':'application/json', Authorization:`Bearer ${token}`}, body:JSON.stringify({currentPassword:cur, newPassword:nw})});
+    const d = await r.json();
+    if (!r.ok) { errEl.textContent = d.message||'Error changing password.'; errEl.classList.add('show'); return; }
+    token = d.token; localStorage.setItem('nh_token', token);
+    ['currentPw','newPw','confirmPw'].forEach(id => document.getElementById(id).value = '');
+    showSuccess('pwMsg');
+  } catch(_) { errEl.textContent='Server error.'; errEl.classList.add('show'); }
+}
+
+async function deleteAccount() {
+  if (!confirm('Are you sure? This CANNOT be undone.')) return;
+  if (!confirm('Last chance — permanently delete your account?')) return;
+  try {
+    await fetch(`${API}/auth/delete-account`, { method:'DELETE', headers:{ Authorization:`Bearer ${token}` }});
+    localStorage.removeItem('nh_token');
+    window.location.href = 'index.html';
+  } catch(_) { alert('Could not delete account.'); }
+}
+
+function toggleKey() {
+  const el = document.getElementById('apiKeyDisplay');
+  const btn = document.querySelector('.copy-btn');
+  apiKeyVisible = !apiKeyVisible;
+  el.textContent = apiKeyVisible ? fakeKey : 'nh_••••••••••••••••••••••••••••••••';
+  btn.textContent = apiKeyVisible ? 'Hide key' : 'Show key';
+}
+
+function copyKey() {
+  navigator.clipboard.writeText(fakeKey)
+    .then(() => showToast('✓ API key copied!'))
+    .catch(() => { alert('Key: ' + fakeKey); });
+}
+
+function regenKey() {
+  if (!confirm('Regenerate your API key? The old one will stop working immediately.')) return;
+  fakeKey = 'nh_' + Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
+  fakeKey = fakeKey.slice(0, 35);
+  apiKeyVisible = false;
+  document.getElementById('apiKeyDisplay').textContent = 'nh_••••••••••••••••••••••••••••••••';
+  document.querySelector('.copy-btn').textContent = 'Show key';
+  showToast('🔑 New API key generated!');
+}
+
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.sidebar-link').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  if (btn) btn.classList.add('active');
+  if (name === 'saved') loadSavedTools();
+}
+
+function showSuccess(id) {
+  const el = document.getElementById(id);
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function logout() { localStorage.removeItem('nh_token'); window.location.href = 'index.html'; }
+
+init();
+</script>
+<script src="animations.js"></script>
+</body>
+</html>
