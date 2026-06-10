@@ -3,7 +3,7 @@ const router = express.Router();
 const { protect } = require('../middleware/auth');
 const User = require('../models/user');
 const OPENROUTER_API = 'https://openrouter.ai/api/v1/chat/completions';
-const MODEL = 'meta-llama/llama-3.1-8b-instruct:free';
+const MODEL = 'meta-llama/llama-3.1-8b-instruct';
 
 const FREE_DAILY_LIMIT = 100;
 
