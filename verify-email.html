@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>NeuralHub — Verify Email</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+:root{--bg:#080c10;--surface:#0e1318;--border:rgba(255,255,255,0.07);--accent:#00e5b0;--accent3:#ff6b6b;--text:#e8edf2;--muted:#6b7a8d}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:24px;padding:3rem;max-width:420px;width:100%;text-align:center}
+.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.4rem;color:var(--text);margin-bottom:2rem;display:block;text-decoration:none}.logo span{color:var(--accent)}
+.icon{font-size:3rem;margin-bottom:1rem}
+.title{font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:700;margin-bottom:.75rem}
+.sub{color:var(--muted);font-size:.9rem;line-height:1.6;margin-bottom:2rem}
+.btn{display:inline-block;background:var(--accent);color:#080c10;padding:.8rem 2rem;border-radius:100px;text-decoration:none;font-weight:500;font-size:.95rem;transition:opacity .2s}
+.btn:hover{opacity:.85}
+.err{color:var(--accent3)}
+</style>
+</head>
+<body>
+<div class="card">
+  <a href="index.html" class="logo">Neural<span>Hub</span></a>
+  <div class="icon" id="icon">⏳</div>
+  <div class="title" id="title">Verifying your email…</div>
+  <div class="sub" id="sub">Please wait a moment.</div>
+  <div id="action"></div>
+</div>
+<script>
+const API = 'https://neuralhub-backend.onrender.com/api';
+const token = new URLSearchParams(window.location.search).get('token');
+
+async function verify() {
+  if (!token) {
+    document.getElementById('icon').textContent = '❌';
+    document.getElementById('title').textContent = 'Invalid link';
+    document.getElementById('sub').textContent = 'No verification token found.';
+    document.getElementById('action').innerHTML = '<a href="index.html" class="btn">Go home</a>';
+    return;
+  }
+  try {
+    const r = await fetch(`${API}/auth/verify-email/${token}`);
+    const d = await r.json();
+    if (d.success) {
+      document.getElementById('icon').textContent = '✅';
+      document.getElementById('title').textContent = 'Email verified!';
+      document.getElementById('sub').textContent = 'Your account is now active. You can log in and start using NeuralHub.';
+      document.getElementById('action').innerHTML = '<a href="index.html" class="btn">Go to NeuralHub →</a>';
+    } else {
+      document.getElementById('icon').textContent = '❌';
+      document.getElementById('title').innerHTML = '<span class="err">Verification failed</span>';
+      document.getElementById('sub').textContent = d.message || 'Invalid or expired link.';
+      document.getElementById('action').innerHTML = '<a href="index.html" class="btn">Go home</a>';
+    }
+  } catch(_) {
+    document.getElementById('icon').textContent = '⚠️';
+    document.getElementById('title').textContent = 'Server error';
+    document.getElementById('sub').textContent = 'Could not connect to server. Try again later.';
+  }
+}
+verify();
+</script>
+</body>
+</html>
