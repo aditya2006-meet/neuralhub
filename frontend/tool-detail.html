@@ -101,6 +101,10 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
 .rev-comment{font-size:.88rem;color:var(--muted);line-height:1.6;font-weight:300}
 .no-reviews{text-align:center;padding:2rem;color:var(--muted);font-size:.9rem}
 @media(max-width:768px){nav{padding:1rem 1.5rem}.nav-links{display:none}.page{padding:6rem 1.5rem 3rem}.hero-section{grid-template-columns:1fr}}
+.dot-pulse{width:8px;height:8px;border-radius:50%;background:var(--accent);display:inline-block;animation:dotPulse 1s infinite}
+@keyframes dotPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.4;transform:scale(0.7)}}
+#outputText{line-height:1.75;font-size:0.88rem;color:#c8d0da}
+#outputText strong{color:#e8edf2}
 </style>
 <link rel="stylesheet" href="mobile.css"/>
 </head>
@@ -272,14 +276,55 @@ function switchDemoTab(idx,btn){
   document.getElementById('demoOutput').classList.remove('show');
 }
 
+function renderMarkdown(text) {
+  return text
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g,'<em>$1</em>')
+    .replace(/`([^`]+)`/g,'<code style="background:rgba(255,255,255,0.08);padding:1px 6px;border-radius:4px;font-family:monospace;font-size:0.88em">$1</code>')
+    .replace(/^### (.+)$/gm,'<div style="font-family:Syne,sans-serif;font-weight:700;margin:1rem 0 0.4rem;color:#e8edf2">$1</div>')
+    .replace(/^## (.+)$/gm,'<div style="font-family:Syne,sans-serif;font-weight:700;font-size:1.05rem;margin:1.2rem 0 0.5rem;color:#e8edf2">$1</div>')
+    .replace(/^# (.+)$/gm,'<div style="font-family:Syne,sans-serif;font-weight:800;font-size:1.2rem;margin:1.4rem 0 0.6rem;color:#e8edf2">$1</div>')
+    .replace(/^\d+\. (.+)$/gm,'<div style="padding:3px 0 3px 1.5rem;position:relative"><span style="position:absolute;left:0;color:#00e5b0">→</span>$1</div>')
+    .replace(/^[\-\*] (.+)$/gm,'<div style="padding:3px 0 3px 1.2rem;position:relative"><span style="position:absolute;left:0;color:#00e5b0">•</span>$1</div>')
+    .replace(/\n\n/g,'<br/><br/>')
+    .replace(/\n/g,'<br/>');
+}
+
+async function typewriter(el, text, speed=8) {
+  el.innerHTML='';
+  el.style.borderRight='2px solid var(--accent)';
+  const rendered = renderMarkdown(text);
+  const temp = document.createElement('div');
+  temp.innerHTML = rendered;
+  const plain = temp.textContent;
+  let i=0;
+  return new Promise(resolve => {
+    const interval = setInterval(()=>{
+      i += Math.ceil(plain.length / 200);
+      if(i >= plain.length) {
+        el.innerHTML = rendered;
+        el.style.borderRight='none';
+        clearInterval(interval);
+        resolve();
+      } else {
+        el.textContent = plain.slice(0, i);
+      }
+    }, speed);
+  });
+}
+
 async function runDemo(){
   const input=document.getElementById('demoInput')?.value?.trim();
-  if(!input){alert('Please enter some text first.');return;}
+  if(!input){showToast('Please enter some text first.');return;}
+  if(!currentUser){showToast('Please log in to use the AI demo.');return;}
   const btn=document.getElementById('demoBtn');
   const out=document.getElementById('demoOutput');
   const outText=document.getElementById('outputText');
-  btn.disabled=true;btn.innerHTML='<div class="loading-dots"><span></span><span></span><span></span></div> Running AI…';
+  btn.disabled=true;
+  btn.innerHTML='<span style="display:inline-flex;gap:4px;align-items:center"><span class="dot-pulse"></span> Thinking…</span>';
   out.classList.remove('show');
+  outText.innerHTML='';
   try{
     const cfg=demoConfigs[tool.category]||demoConfigs.text;
     const lang=document.getElementById('langSelect')?.value||'javascript';
@@ -287,14 +332,21 @@ async function runDemo(){
     const r=await fetch(`${API}${cfg.endpoint}`,{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${token}`},body:JSON.stringify(body)});
     const d=await r.json();
     if(!r.ok)throw new Error(d.message||'AI request failed');
-    outText.textContent=d.result;
     out.classList.add('show');
+    await typewriter(outText, d.result);
   }catch(err){
-    outText.textContent='Error: '+err.message;
+    outText.innerHTML='<span style="color:#ff6b6b">⚠️ '+err.message+'</span>';
     out.classList.add('show');
   }finally{
     btn.disabled=false;btn.innerHTML='⚡ Run AI';
   }
+}
+
+function showToast(msg){
+  let t=document.getElementById('globalToast');
+  if(!t){t=document.createElement('div');t.id='globalToast';t.style.cssText='position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(20px);background:#131920;border:1px solid rgba(255,255,255,0.1);border-radius:100px;padding:0.6rem 1.5rem;font-size:0.85rem;opacity:0;transition:all 0.3s;z-index:9999;pointer-events:none;white-space:nowrap;color:#e8edf2';document.body.appendChild(t);}
+  t.textContent=msg;t.style.opacity='1';t.style.transform='translateX(-50%) translateY(0)';
+  setTimeout(()=>{t.style.opacity='0';t.style.transform='translateX(-50%) translateY(20px)';},2500);
 }
 
 function copyOutput(){
