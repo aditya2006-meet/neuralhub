@@ -34,9 +34,14 @@ files.forEach(file => {
     return;
   }
 
-  fs.copyFileSync(src, dest);
-  console.log(`✅ Synced: ${file}`);
-  copied++;
+  try {
+    fs.copyFileSync(src, dest);
+    console.log(`✅ Synced: ${file}`);
+    copied++;
+  } catch (err) {
+    console.error(`❌ Failed to copy ${file}: ${err.message}`);
+    skipped++;
+  }
 });
 
 console.log(`\n🚀 Done! ${copied} files synced, ${skipped} skipped.`);

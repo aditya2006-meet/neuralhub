@@ -1,14 +1,21 @@
 const nodemailer = require('nodemailer');
 
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
-  }
-});
+let transporter;
+
+if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+  transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS
+    }
+  });
+} else {
+  console.warn('Email not configured: EMAIL_USER and EMAIL_PASS are required for sending emails');
+}
 
 const sendVerificationEmail = async (email, name, token) => {
+  if (!transporter) throw new Error('Email service is not configured');
   const url = `${process.env.CLIENT_URL}/verify-email.html?token=${token}`;
   await transporter.sendMail({
     from: `"NeuralHub" <${process.env.EMAIL_USER}>`,
@@ -27,6 +34,7 @@ const sendVerificationEmail = async (email, name, token) => {
 };
 
 const sendPasswordResetEmail = async (email, name, token) => {
+  if (!transporter) throw new Error('Email service is not configured');
   const url = `${process.env.CLIENT_URL}/reset-password.html?token=${token}`;
   await transporter.sendMail({
     from: `"NeuralHub" <${process.env.EMAIL_USER}>`,
@@ -45,6 +53,7 @@ const sendPasswordResetEmail = async (email, name, token) => {
 };
 
 const sendWelcomeEmail = async (email, name) => {
+  if (!transporter) throw new Error('Email service is not configured');
   await transporter.sendMail({
     from: `"NeuralHub" <${process.env.EMAIL_USER}>`,
     to: email,

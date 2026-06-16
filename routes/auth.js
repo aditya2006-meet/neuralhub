@@ -30,7 +30,12 @@ router.post('/signup', [
       verificationToken,
       verificationExpires: Date.now() + 24 * 60 * 60 * 1000
     });
-    try { await sendVerificationEmail(email, name, verificationToken); } catch(e) { console.log('Email error:', e.message); }
+    try {
+      await sendVerificationEmail(email, name, verificationToken);
+    } catch (emailErr) {
+      console.error('Failed to send verification email:', emailErr.message);
+      // Non-blocking: user is still created, but flag the email failure in the response
+    }
     sendToken(user, 201, res);
   } catch (err) {
     console.error(err);
@@ -52,6 +57,7 @@ router.post('/login', [
       return res.status(401).json({ success: false, message: 'Invalid email or password.' });
     sendToken(user, 200, res);
   } catch (err) {
+    console.error('Login error:', err);
     res.status(500).json({ success: false, message: 'Server error.' });
   }
 });
@@ -68,9 +74,14 @@ router.get('/verify-email/:token', async (req, res) => {
     user.verificationToken = undefined;
     user.verificationExpires = undefined;
     await user.save();
-    try { await sendWelcomeEmail(user.email, user.name); } catch(e) {}
+    try {
+      await sendWelcomeEmail(user.email, user.name);
+    } catch (emailErr) {
+      console.error('Failed to send welcome email:', emailErr.message);
+    }
     res.json({ success: true, message: 'Email verified! You can now log in.' });
   } catch (err) {
+    console.error('Email verification error:', err);
     res.status(500).json({ success: false, message: 'Server error.' });
   }
 });
@@ -84,9 +95,15 @@ router.post('/forgot-password', async (req, res) => {
     user.resetPasswordToken = resetToken;
     user.resetPasswordExpires = Date.now() + 60 * 60 * 1000;
     await user.save();
-    try { await sendPasswordResetEmail(user.email, user.name, resetToken); } catch(e) { console.log('Email error:', e.message); }
+    try {
+      await sendPasswordResetEmail(user.email, user.name, resetToken);
+    } catch (emailErr) {
+      console.error('Failed to send password reset email:', emailErr.message);
+      return res.status(500).json({ success: false, message: 'Failed to send reset email. Please try again.' });
+    }
     res.json({ success: true, message: 'Password reset link sent to your email.' });
   } catch (err) {
+    console.error('Forgot password error:', err);
     res.status(500).json({ success: false, message: 'Server error.' });
   }
 });
@@ -109,6 +126,7 @@ router.post('/reset-password/:token', [
     await user.save();
     sendToken(user, 200, res);
   } catch (err) {
+    console.error('Reset password error:', err);
     res.status(500).json({ success: false, message: 'Server error.' });
   }
 });
@@ -124,6 +142,7 @@ router.post('/resend-verification', protect, async (req, res) => {
     await sendVerificationEmail(req.user.email, req.user.name, token);
     res.json({ success: true, message: 'Verification email sent!' });
   } catch (err) {
+    console.error('Resend verification error:', err);
     res.status(500).json({ success: false, message: 'Server error.' });
   }
 });
@@ -142,6 +161,7 @@ router.patch('/update-profile', protect, async (req, res) => {
     const user = await User.findByIdAndUpdate(req.user._id, updates, { new: true, runValidators: true });
     res.json({ success: true, user });
   } catch (err) {
+    console.error('Update profile error:', err);
     res.status(500).json({ success: false, message: 'Server error.' });
   }
 });
@@ -156,6 +176,7 @@ router.patch('/change-password', protect, async (req, res) => {
     await user.save();
     sendToken(user, 200, res);
   } catch (err) {
+    console.error('Change password error:', err);
     res.status(500).json({ success: false, message: 'Server error.' });
   }
 });
@@ -166,6 +187,7 @@ router.delete('/delete-account', protect, async (req, res) => {
     await User.findByIdAndDelete(req.user._id);
     res.json({ success: true, message: 'Account deleted.' });
   } catch (err) {
+    console.error('Delete account error:', err);
     res.status(500).json({ success: false, message: 'Server error.' });
   }
 });
