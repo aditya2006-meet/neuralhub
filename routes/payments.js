@@ -46,7 +46,17 @@ router.post('/webhook', async (req, res) => {
     const session = event.data.object;
     const userId = session.metadata?.userId;
     if (userId) {
-      await User.findByIdAndUpdate(userId, { plan: 'pro' });
+      try {
+        const updatedUser = await User.findByIdAndUpdate(userId, { plan: 'pro' });
+        if (!updatedUser) {
+          console.error(`Stripe webhook: User ${userId} not found when upgrading to pro`);
+        }
+      } catch (dbErr) {
+        console.error(`Stripe webhook: Failed to upgrade user ${userId} to pro:`, dbErr.message);
+        return res.status(500).json({ error: 'Failed to process upgrade' });
+      }
+    } else {
+      console.error('Stripe webhook: checkout.session.completed missing userId in metadata');
     }
   }
   res.sendStatus(200);

@@ -35,26 +35,58 @@ const checkRateLimit = async (req, res, next) => {
 
 // ─── Core AI call ─────────────────────────────────────────────────────────────
 async function callAI(systemPrompt, userPrompt, maxTokens = 1024) {
-  const res = await fetch(OPENROUTER_API, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
-      'HTTP-Referer': 'https://aditya2006-meet.github.io/neuralhub',
-      'X-Title': 'NeuralHub AI Marketplace'
-    },
-    body: JSON.stringify({
-      model: MODEL,
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt }
-      ],
-      max_tokens: maxTokens,
-      temperature: 0.7
-    })
-  });
-  const data = await res.json();
-  if (data.error) throw new Error(data.error.message);
+  if (!process.env.OPENROUTER_API_KEY) {
+    throw new Error('OPENROUTER_API_KEY is not configured');
+  }
+
+  let response;
+  try {
+    response = await fetch(OPENROUTER_API, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
+        'HTTP-Referer': 'https://aditya2006-meet.github.io/neuralhub',
+        'X-Title': 'NeuralHub AI Marketplace'
+      },
+      body: JSON.stringify({
+        model: MODEL,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt }
+        ],
+        max_tokens: maxTokens,
+        temperature: 0.7
+      })
+    });
+  } catch (fetchErr) {
+    console.error('OpenRouter API network error:', fetchErr.message);
+    throw new Error('AI service is temporarily unavailable. Please try again.');
+  }
+
+  if (!response.ok) {
+    const errorText = await response.text().catch(() => 'Unknown error');
+    console.error(`OpenRouter API returned ${response.status}: ${errorText}`);
+    throw new Error(`AI service error (${response.status}). Please try again.`);
+  }
+
+  let data;
+  try {
+    data = await response.json();
+  } catch (parseErr) {
+    console.error('Failed to parse OpenRouter response:', parseErr.message);
+    throw new Error('Received invalid response from AI service.');
+  }
+
+  if (data.error) {
+    throw new Error(data.error.message || 'AI service returned an error');
+  }
+
+  if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+    console.error('Unexpected OpenRouter response structure:', JSON.stringify(data).slice(0, 200));
+    throw new Error('AI service returned an unexpected response format.');
+  }
+
   return data.choices[0].message.content;
 }
 
