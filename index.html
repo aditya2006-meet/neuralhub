@@ -21,9 +21,9 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
 .user-dropdown a,.user-dropdown button{display:block;width:100%;text-align:left;padding:.5rem .85rem;font-size:.85rem;color:var(--muted);text-decoration:none;background:none;border:none;cursor:pointer;border-radius:8px;font-family:'DM Sans',sans-serif;transition:all .15s}
 .user-dropdown a:hover,.user-dropdown button:hover{background:rgba(255,255,255,.05);color:var(--text)}
 .user-dropdown .logout-btn{color:var(--accent3)}
-.modal-overlay{position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:9999;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;padding:1rem;overflow-y:auto}
+.modal-overlay{position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:9999;background:rgba(0,0,0,.85);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;padding:1rem}
 .modal-overlay.open{display:flex}
-.modal{background:var(--surface);border:1px solid var(--border);border-radius:24px;padding:2rem;width:100%;max-width:420px;max-height:90vh;overflow-y:auto;position:relative;animation:mIn .25s ease;margin:auto}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:24px;padding:2rem;width:calc(100% - 2rem);max-width:420px;max-height:85vh;overflow-y:auto;position:relative;animation:mIn .25s ease;flex-shrink:0}
 @keyframes mIn{from{opacity:0;transform:scale(.95) translateY(12px)}to{opacity:1;transform:scale(1) translateY(0)}}
 .modal-close{position:absolute;top:1.25rem;right:1.25rem;background:none;border:none;color:var(--muted);font-size:1.4rem;cursor:pointer}
 .modal-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.2rem;margin-bottom:.25rem}.modal-logo span{color:var(--accent)}
@@ -174,7 +174,7 @@ footer{border-top:1px solid var(--border);padding:3rem 4rem;display:grid;grid-te
   <div class="hbadge"><span class="dot"></span>1,200+ AI tools live on the marketplace</div>
   <h1>The <em>Intelligent</em><br/>AI Marketplace</h1>
   <p>Discover, compare, and deploy cutting-edge AI models and tools — all in one place.</p>
-  <div class="hero-actions">
+  <div class="hero-actions" id="heroActions" style="visibility:hidden">
     <a href="tools.html" class="btn-primary">Browse AI Tools</a>
     <button class="btn-outline" onclick="openModal('signup')">Create free account</button>
   </div>
@@ -234,7 +234,7 @@ footer{border-top:1px solid var(--border);padding:3rem 4rem;display:grid;grid-te
 <div class="cta-section">
   <h2>Start building with<br/><em style="font-style:normal;color:var(--accent)">AI today.</em></h2>
   <p>Join 84,000+ developers already shipping with NeuralHub.</p>
-  <button class="btn-primary" onclick="openModal('signup')" style="font-size:1rem;padding:1rem 2.5rem">Create free account →</button>
+  <button class="btn-primary" id="ctaBtn" onclick="openModal('signup')" style="font-size:1rem;padding:1rem 2.5rem;visibility:hidden">Create free account →</button>
 </div>
 
 <footer>
@@ -266,12 +266,24 @@ function fmt(n){return n>=1000?(n/1000).toFixed(0)+'K':n||0;}
 
 function renderNav(){
   const el=document.getElementById('navRight');
-  if(!currentUser){el.innerHTML=`<button class="btn-ghost" onclick="openModal('login')">Log in</button><button class="btn-accent" onclick="openModal('signup')">Get started</button>`;}
-  else{const i=currentUser.name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);el.innerHTML=`<div class="user-pill"><div class="user-avatar">${i}</div><span style="font-size:.85rem;font-weight:500">${currentUser.name.split(' ')[0]}</span><span style="color:var(--muted);font-size:.75rem">▾</span><div class="user-dropdown"><a href="dashboard.html">🏠 Dashboard</a><a href="tools.html">🔍 Explore</a><a href="submit.html">🛠️ Submit Tool</a><button class="logout-btn" onclick="logout()">Log out</button></div></div>`;}
+  const heroActions=document.getElementById('heroActions');
+  const ctaBtn=document.getElementById('ctaBtn');
+  if(!currentUser){
+    el.innerHTML=`<button class="btn-ghost" onclick="openModal('login')">Log in</button><button class="btn-accent" onclick="openModal('signup')">Get started</button>`;
+    if(heroActions){heroActions.innerHTML=`<button class="btn-primary" onclick="window.location.href='tools.html'">Browse AI Tools</button><button class="btn-outline" onclick="openModal('signup')">Create free account</button>`;heroActions.style.visibility='visible';}
+    if(ctaBtn){ctaBtn.textContent='Create free account →';ctaBtn.onclick=()=>openModal('signup');ctaBtn.style.visibility='visible';}
+  } else {
+    const i=currentUser.name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+    el.innerHTML=`<div class="user-pill"><div class="user-avatar">${i}</div><span style="font-size:.85rem;font-weight:500">${currentUser.name.split(' ')[0]}</span><span style="color:var(--muted);font-size:.75rem">▾</span><div class="user-dropdown"><a href="dashboard.html">🏠 Dashboard</a><a href="tools.html">🔍 Explore</a><a href="submit.html">🛠️ Submit Tool</a><button class="logout-btn" onclick="logout()">Log out</button></div></div>`;
+    if(heroActions){heroActions.innerHTML=`<button class="btn-primary" onclick="window.location.href='tools.html'">Browse AI Tools</button><button class="btn-outline" onclick="window.location.href='dashboard.html'">Go to Dashboard</button>`;heroActions.style.visibility='visible';}
+    if(ctaBtn){ctaBtn.textContent='Go to Dashboard →';ctaBtn.onclick=()=>window.location.href='dashboard.html';ctaBtn.style.visibility='visible';}
+    if(ctaBtn){ctaBtn.textContent='Go to Dashboard →';ctaBtn.onclick=()=>window.location.href='dashboard.html';}
+  }
 }
 
 function openModal(t){document.getElementById('authModal').classList.add('open');switchTab(t);clearM();}
-function closeModal(){ document.body.style.overflow="";document.getElementById('authModal').classList.remove('open');}
+function closeModal(){
+  document.body.style.overflow='';document.getElementById('authModal').classList.remove('open');}
 function closeOut(e){if(e.target===document.getElementById('authModal'))closeModal();}
 function switchTab(t){const il=t==='login';document.getElementById('loginForm').style.display=il?'block':'none';document.getElementById('signupForm').style.display=il?'none':'block';document.getElementById('tLogin').classList.toggle('active',il);document.getElementById('tSignup').classList.toggle('active',!il);document.getElementById('mSub').textContent=il?'Welcome back! Sign in to continue.':'Join 84,000+ developers building with AI.';clearM();}
 function setRole(r){currentRole=r;document.getElementById('rUser').classList.toggle('selected',r==='user');document.getElementById('rDev').classList.toggle('selected',r==='developer');}
