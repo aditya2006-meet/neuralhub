@@ -334,6 +334,21 @@ async function runDemo(){
     if(!r.ok)throw new Error(d.message||'AI request failed');
     out.classList.add('show');
     await typewriter(outText, d.result);
+    // Save to history
+    if(currentUser && tool) {
+      fetch(`${API}/history`, {
+        method:'POST',
+        headers:{'Content-Type':'application/json', Authorization:`Bearer ${token}`},
+        body: JSON.stringify({
+          toolSlug: tool.slug,
+          toolName: tool.name,
+          toolIcon: tool.icon,
+          toolCategory: tool.category,
+          action: 'ran_ai',
+          prompt: input.slice(0, 200)
+        })
+      }).catch(()=>{});
+    }
   }catch(err){
     outText.innerHTML='<span style="color:#ff6b6b">⚠️ '+err.message+'</span>';
     out.classList.add('show');

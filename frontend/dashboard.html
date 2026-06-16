@@ -137,6 +137,14 @@
   .toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(20px);background:var(--surface2);border:1px solid var(--border);border-radius:100px;padding:0.6rem 1.5rem;font-size:0.85rem;opacity:0;transition:all 0.3s;z-index:999;pointer-events:none;white-space:nowrap}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
+  .history-item{display:flex;align-items:center;gap:12px;padding:0.85rem 1rem;background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:8px;cursor:pointer;transition:all 0.2s}
+  .history-item:hover{border-color:rgba(0,229,176,0.2);transform:translateX(3px)}
+  .history-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;background:rgba(0,229,176,0.08)}
+  .history-info{flex:1;min-width:0}
+  .history-name{font-size:0.9rem;font-weight:500;margin-bottom:2px}
+  .history-prompt{font-size:0.78rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .history-time{font-size:0.72rem;color:var(--muted);flex-shrink:0}
+  .history-badge{font-size:0.68rem;padding:2px 7px;border-radius:100px;background:rgba(0,229,176,0.1);color:var(--accent);border:1px solid rgba(0,229,176,0.2);margin-left:6px}
   @media(max-width:900px){.layout{grid-template-columns:1fr}.sidebar{display:none}.stats-row{grid-template-columns:repeat(2,1fr)}.section-row{grid-template-columns:1fr}}
   @media(max-width:480px){.stats-row{grid-template-columns:1fr}.quick-actions{grid-template-columns:1fr}}
 </style>
@@ -178,6 +186,7 @@
       <button class="sidebar-link" onclick="switchTab('saved',this)"><span class="icon">🔖</span> Saved Tools</button>
       <button class="sidebar-link" onclick="switchTab('profile',this)"><span class="icon">👤</span> Edit Profile</button>
       <button class="sidebar-link" onclick="switchTab('apikeys',this)"><span class="icon">🔑</span> API Keys</button>
+      <button class="sidebar-link" onclick="switchTab('history',this)"><span class="icon">🕐</span> History</button>
       <button class="sidebar-link" onclick="switchTab('security',this)"><span class="icon">🔒</span> Security</button>
     </div>
   </div>
@@ -311,6 +320,15 @@
         <div class="usage-bar" style="height:6px"><div class="usage-fill" id="usageFill2"></div></div>
         <p style="font-size:0.78rem;color:var(--muted);margin-top:0.75rem">Counter resets daily at midnight. <a href="pricing.html" style="color:var(--accent2)">Upgrade for unlimited →</a></p>
       </div>
+    </div>
+
+    <!-- HISTORY -->
+    <div class="tab-content" id="tab-history">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem">
+        <div class="section-title" style="margin-bottom:0">Tool Usage History</div>
+        <button onclick="clearHistory()" style="font-size:0.78rem;color:var(--accent3);background:none;border:1px solid rgba(255,107,107,0.2);border-radius:100px;padding:0.3rem 0.85rem;cursor:pointer;font-family:'DM Sans',sans-serif">Clear all</button>
+      </div>
+      <div id="historyList"><div class="empty-state"><div class="e-icon">🕐</div><p>Loading history…</p></div></div>
     </div>
 
     <!-- SECURITY -->
@@ -565,12 +583,56 @@ function regenKey() {
   showToast('🔑 New API key generated!');
 }
 
+async function loadHistory() {
+  const list = document.getElementById('historyList');
+  if (!list) return;
+  try {
+    const r = await fetch(`${API}/history`, { headers: { Authorization: `Bearer ${token}` } });
+    const d = await r.json();
+    if (!d.history?.length) {
+      list.innerHTML = '<div class="empty-state"><div class="e-icon">🕐</div><p>No history yet.<br/>Use any AI tool to see it here.</p></div>';
+      return;
+    }
+    list.innerHTML = d.history.map(h => {
+      const time = timeAgo(new Date(h.createdAt));
+      return `<div class="history-item" onclick="window.location.href='tool-detail.html?slug=${h.toolSlug}'">
+        <div class="history-icon">${h.toolIcon}</div>
+        <div class="history-info">
+          <div class="history-name">${h.toolName} <span class="history-badge">⚡ AI Run</span></div>
+          <div class="history-prompt">${h.prompt || 'No prompt recorded'}</div>
+        </div>
+        <div class="history-time">${time}</div>
+      </div>`;
+    }).join('');
+  } catch(_) {
+    list.innerHTML = '<p style="color:var(--muted);padding:2rem">Could not load history.</p>';
+  }
+}
+
+async function clearHistory() {
+  if (!confirm('Clear all history?')) return;
+  try {
+    await fetch(`${API}/history`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+    document.getElementById('historyList').innerHTML = '<div class="empty-state"><div class="e-icon">🕐</div><p>History cleared.</p></div>';
+    showToast('History cleared');
+  } catch(_) {}
+}
+
+function timeAgo(date) {
+  const seconds = Math.floor((new Date() - date) / 1000);
+  if (seconds < 60) return 'just now';
+  if (seconds < 3600) return Math.floor(seconds/60) + 'm ago';
+  if (seconds < 86400) return Math.floor(seconds/3600) + 'h ago';
+  return Math.floor(seconds/86400) + 'd ago';
+}
+
 function switchTab(name, btn) {
   document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.sidebar-link').forEach(b => b.classList.remove('active'));
   document.getElementById('tab-'+name).classList.add('active');
   if (btn) btn.classList.add('active');
   if (name === 'saved') loadSavedTools();
+  if (name === 'history') loadHistory();
 }
 
 function showSuccess(id) {
