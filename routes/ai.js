@@ -80,7 +80,10 @@ router.post('/text', protect, checkRateLimit, async (req, res) => {
 
     const result = await callAI(system, prompts[type] || prompts.general);
     res.json({ success: true, result, type });
-  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+  } catch (err) {
+    console.error('AI text error:', err.message);
+    res.status(500).json({ success: false, message: 'AI service temporarily unavailable' });
+  }
 });
 
 // ─── CODE GENERATION ──────────────────────────────────────────────────────────
@@ -105,7 +108,10 @@ router.post('/code', protect, checkRateLimit, async (req, res) => {
 
     const result = await callAI(system, prompts[type] || prompts.generate, 1500);
     res.json({ success: true, result, language, type });
-  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+  } catch (err) {
+    console.error('AI code error:', err.message);
+    res.status(500).json({ success: false, message: 'AI service temporarily unavailable' });
+  }
 });
 
 // ─── SUMMARIZE ────────────────────────────────────────────────────────────────
@@ -128,7 +134,10 @@ router.post('/summarize', protect, checkRateLimit, async (req, res) => {
 
     const result = await callAI(system, prompts[style] || prompts.bullet);
     res.json({ success: true, result, style });
-  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+  } catch (err) {
+    console.error('AI summarize error:', err.message);
+    res.status(500).json({ success: false, message: 'AI service temporarily unavailable' });
+  }
 });
 
 // ─── DATA ANALYSIS ────────────────────────────────────────────────────────────
@@ -141,7 +150,10 @@ router.post('/analyze', protect, checkRateLimit, async (req, res) => {
 
     const result = await callAI(system, `Analyze this data and answer: "${question}"\n\nData:\n${data}\n\n## Direct Answer\n[answer the question directly]\n\n## Key Insights\n• [insight 1 with specific data points]\n• [insight 2]\n• [insight 3]\n\n## Trends\n[patterns or trends observed]\n\n## Recommendations\n1. [actionable recommendation]\n2. [recommendation]\n3. [recommendation]`);
     res.json({ success: true, result });
-  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+  } catch (err) {
+    console.error('AI analyze error:', err.message);
+    res.status(500).json({ success: false, message: 'AI service temporarily unavailable' });
+  }
 });
 
 // ─── AI AGENT ─────────────────────────────────────────────────────────────────
@@ -154,7 +166,10 @@ router.post('/agent', protect, checkRateLimit, async (req, res) => {
 
     const result = await callAI(system, `Complete this task autonomously: "${task}"\n\n## Task Analysis\n[understand what needs to be done]\n\n## Execution Plan\n1. [step 1]\n2. [step 2]\n3. [step 3]\n\n## Execution\n\n**Step 1:** [detailed execution]\n\n**Step 2:** [detailed execution]\n\n**Step 3:** [detailed execution]\n\n## Result\n[final deliverable or answer]\n\n## Summary\n[what was accomplished]`, 1500);
     res.json({ success: true, result });
-  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+  } catch (err) {
+    console.error('AI agent error:', err.message);
+    res.status(500).json({ success: false, message: 'AI service temporarily unavailable' });
+  }
 });
 
 // ─── IMAGE DESCRIPTION ────────────────────────────────────────────────────────
@@ -167,7 +182,10 @@ router.post('/describe', protect, checkRateLimit, async (req, res) => {
 
     const result = await callAI(system, `Create a detailed AI image generation prompt for: "${prompt}"\n\n## Image Description\n[vivid, detailed description of the scene]\n\n## Style & Mood\n[artistic style, lighting, atmosphere, color palette]\n\n## Technical Details\n[camera angle, composition, rendering style]\n\n## Optimized Prompt\n[clean, ready-to-use prompt for Midjourney/DALL-E/Stable Diffusion]\n\n## Negative Prompt\n[things to avoid in the image]`);
     res.json({ success: true, result });
-  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+  } catch (err) {
+    console.error('AI describe error:', err.message);
+    res.status(500).json({ success: false, message: 'AI service temporarily unavailable' });
+  }
 });
 
 // ─── TRANSCRIBE ───────────────────────────────────────────────────────────────
@@ -180,7 +198,10 @@ router.post('/transcribe', protect, checkRateLimit, async (req, res) => {
 
     const result = await callAI(system, `Process and clean this transcript/audio content:\n\n${content}\n\n## Clean Transcript\n[properly punctuated, formatted transcript]\n\n## Speaker Summary\n[who said what - if multiple speakers detected]\n\n## Key Points Mentioned\n• [main topic 1]\n• [main topic 2]\n• [main topic 3]\n\n## Action Items\n[any tasks or decisions mentioned]`);
     res.json({ success: true, result });
-  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+  } catch (err) {
+    console.error('AI transcribe error:', err.message);
+    res.status(500).json({ success: false, message: 'AI service temporarily unavailable' });
+  }
 });
 
 // ─── CHAT ─────────────────────────────────────────────────────────────────────
@@ -193,7 +214,10 @@ router.post('/chat', protect, checkRateLimit, async (req, res) => {
 
     const result = await callAI(system, message);
     res.json({ success: true, result });
-  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+  } catch (err) {
+    console.error('AI chat error:', err.message);
+    res.status(500).json({ success: false, message: 'AI service temporarily unavailable' });
+  }
 });
 
 module.exports = router;

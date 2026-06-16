@@ -1,12 +1,18 @@
 const express = require('express');
 const Tool = require('../models/tool');
 const Review = require('../models/review');
-const { protect } = require('../middleware/auth');
+const { protect, restrictTo } = require('../middleware/auth');
 const router = express.Router();
+
+function escapeRegex(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+const ALLOWED_SORT_FIELDS = ['createdAt', '-createdAt', 'name', '-name', 'usageCount', '-usageCount', 'averageRating', '-averageRating'];
 
 // ─── POST seed tools (run once) ──────────────────────────────────────────────
 // MUST be before /:id and /:slug routes or Express matches "admin" as a param
-router.post('/admin/seed', async (req, res) => {
+router.post('/admin/seed', protect, restrictTo('admin'), async (req, res) => {
   try {
     await Tool.deleteMany({});
     const tools = [
@@ -57,12 +63,16 @@ router.get('/', async (req, res) => {
     const filter = { isActive: true };
     if (category) filter.category = category;
     if (badge) filter.badge = badge;
-    if (search) filter.$or = [
-      { name: { $regex: search, $options: 'i' } },
-      { description: { $regex: search, $options: 'i' } },
-      { tags: { $regex: search, $options: 'i' } }
-    ];
-    const tools = await Tool.find(filter).sort(sort).populate('createdBy', 'name');
+    if (search) {
+      const sanitized = escapeRegex(String(search).slice(0, 100));
+      filter.$or = [
+        { name: { $regex: sanitized, $options: 'i' } },
+        { description: { $regex: sanitized, $options: 'i' } },
+        { tags: { $regex: sanitized, $options: 'i' } }
+      ];
+    }
+    const safeSort = ALLOWED_SORT_FIELDS.includes(sort) ? sort : '-createdAt';
+    const tools = await Tool.find(filter).sort(safeSort).populate('createdBy', 'name');
     res.json({ success: true, count: tools.length, tools });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Server error' });
@@ -118,6 +128,10 @@ router.post('/:id/reviews', protect, async (req, res) => {
   try {
     const { rating, comment } = req.body;
     if (!rating || !comment) return res.status(400).json({ success: false, message: 'Rating and comment required' });
+    const numRating = Number(rating);
+    if (!Number.isInteger(numRating) || numRating < 1 || numRating > 5) {
+      return res.status(400).json({ success: false, message: 'Rating must be an integer between 1 and 5' });
+    }
     const existing = await Review.findOne({ tool: req.params.id, user: req.user._id });
     if (existing) return res.status(409).json({ success: false, message: 'You already reviewed this tool' });
     const review = await Review.create({ tool: req.params.id, user: req.user._id, rating, comment });

@@ -147,7 +147,11 @@ router.patch('/update-profile', protect, async (req, res) => {
 });
 
 // CHANGE PASSWORD
-router.patch('/change-password', protect, async (req, res) => {
+router.patch('/change-password', protect, [
+  body('newPassword').isLength({ min: 6 }).withMessage('New password must be at least 6 characters')
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return res.status(400).json({ success: false, errors: errors.array() });
   try {
     const user = await User.findById(req.user._id).select('+password');
     if (!(await user.comparePassword(req.body.currentPassword)))
