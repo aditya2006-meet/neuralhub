@@ -27,7 +27,8 @@ router.post('/create-checkout', protect, async (req, res) => {
     });
     res.json({ success: true, url: session.url });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    console.error('Stripe checkout error:', err.message);
+    res.status(500).json({ success: false, message: 'Payment processing failed. Please try again.' });
   }
 });
 
@@ -40,7 +41,8 @@ router.post('/webhook', async (req, res) => {
   try {
     event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
   } catch (err) {
-    return res.status(400).send(`Webhook Error: ${err.message}`);
+    console.error('Webhook signature verification failed:', err.message);
+    return res.status(400).send('Webhook signature verification failed');
   }
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object;

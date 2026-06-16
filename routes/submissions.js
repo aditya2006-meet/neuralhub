@@ -24,7 +24,8 @@ router.post('/', protect, restrictTo('developer', 'admin'), [
     });
     res.status(201).json({ success: true, tool });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    console.error('Submission create error:', err.message);
+    res.status(500).json({ success: false, message: 'Server error' });
   }
 });
 

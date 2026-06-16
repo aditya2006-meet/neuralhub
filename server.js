@@ -2,6 +2,8 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 
 const authRoutes = require('./routes/auth');
 const toolRoutes = require('./routes/tools');
@@ -9,6 +11,11 @@ const paymentRoutes = require('./routes/payments');
 const submissionRoutes = require('./routes/submissions');
 const aiRoutes = require('./routes/ai');
 const historyRoutes = require('./routes/history');
+
+if (!process.env.JWT_SECRET) {
+  console.error('FATAL: JWT_SECRET environment variable is not set. Exiting.');
+  process.exit(1);
+}
 
 const app = express();
 
@@ -19,17 +26,28 @@ const ALLOWED_ORIGINS = [
   'http://127.0.0.1:5500'
 ];
 
+app.use(helmet());
+
 app.use('/api/payments/webhook', express.raw({ type: 'application/json' }));
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (curl, Postman, mobile apps)
     if (!origin || ALLOWED_ORIGINS.includes(origin)) return callback(null, true);
-    callback(new Error(`CORS blocked: ${origin}`));
+    callback(new Error('Not allowed by CORS'));
   },
   credentials: true
 }));
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true }));
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  message: { success: false, message: 'Too many requests, please try again later.' }
+});
+app.use('/api/auth/login', authLimiter);
+app.use('/api/auth/signup', authLimiter);
+app.use('/api/auth/forgot-password', authLimiter);
+app.use('/api/auth/reset-password', authLimiter);
 
 app.use('/api/auth', authRoutes);
 app.use('/api/tools', toolRoutes);
@@ -48,7 +66,7 @@ app.use((req, res) => {
 
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).json({ success: false, message: err.message || 'Internal server error' });
+  res.status(500).json({ success: false, message: 'Internal server error' });
 });
 
 const PORT = process.env.PORT || 5000;
