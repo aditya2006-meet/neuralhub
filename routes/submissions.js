@@ -2,7 +2,11 @@ const express = require('express');
 const router = express.Router();
 const Tool = require('../models/tool');
 const { protect, restrictTo } = require('../middleware/auth');
-const { body, validationResult } = require('express-validator');
+const { body } = require('express-validator');
+const asyncHandler = require('../utils/asyncHandler');
+const { success, error } = require('../utils/apiResponse');
+const handleValidation = require('../utils/validate');
+const pickFields = require('../utils/pickFields');
 
 // ─── Submit a new tool (developers only) ─────────────────────────────────────
 router.post('/', protect, restrictTo('developer', 'admin'), [
@@ -10,57 +14,39 @@ router.post('/', protect, restrictTo('developer', 'admin'), [
   body('description').trim().notEmpty().withMessage('Description required'),
   body('category').isIn(['text','image','code','audio','data','agent']).withMessage('Invalid category'),
   body('icon').optional().trim()
-], async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) return res.status(400).json({ success: false, errors: errors.array() });
-  try {
-    const { name, description, longDescription, icon, category, badge, tags } = req.body;
-    const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '-' + Date.now();
-    const tool = await Tool.create({
-      name, slug, description, longDescription: longDescription || description,
-      icon: icon || '🤖', category, badge: badge || 'free',
-      tags: Array.isArray(tags) ? tags : (tags||'').split(',').map(t=>t.trim()).filter(Boolean),
-      createdBy: req.user._id
-    });
-    res.status(201).json({ success: true, tool });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
-  }
-});
+], handleValidation, asyncHandler(async (req, res) => {
+  const { name, description, longDescription, icon, category, badge, tags } = req.body;
+  const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '-' + Date.now();
+  const tool = await Tool.create({
+    name, slug, description, longDescription: longDescription || description,
+    icon: icon || '🤖', category, badge: badge || 'free',
+    tags: Array.isArray(tags) ? tags : (tags||'').split(',').map(t=>t.trim()).filter(Boolean),
+    createdBy: req.user._id
+  });
+  success(res, { tool }, 201);
+}));
 
 // ─── Get my submitted tools ───────────────────────────────────────────────────
-router.get('/mine', protect, async (req, res) => {
-  try {
-    const tools = await Tool.find({ createdBy: req.user._id }).sort('-createdAt');
-    res.json({ success: true, tools });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
-  }
-});
+router.get('/mine', protect, asyncHandler(async (req, res) => {
+  const tools = await Tool.find({ createdBy: req.user._id }).sort('-createdAt');
+  success(res, { tools });
+}));
 
 // ─── Update my tool ───────────────────────────────────────────────────────────
-router.patch('/:id', protect, async (req, res) => {
-  try {
-    const tool = await Tool.findOne({ _id: req.params.id, createdBy: req.user._id });
-    if (!tool) return res.status(404).json({ success: false, message: 'Tool not found or not yours' });
-    const allowed = ['name','description','longDescription','icon','badge','tags'];
-    allowed.forEach(f => { if (req.body[f] !== undefined) tool[f] = req.body[f]; });
-    await tool.save();
-    res.json({ success: true, tool });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
-  }
-});
+router.patch('/:id', protect, asyncHandler(async (req, res) => {
+  const tool = await Tool.findOne({ _id: req.params.id, createdBy: req.user._id });
+  if (!tool) return error(res, 'Tool not found or not yours', 404);
+  const updates = pickFields(req.body, ['name','description','longDescription','icon','badge','tags']);
+  Object.assign(tool, updates);
+  await tool.save();
+  success(res, { tool });
+}));
 
 // ─── Delete my tool ───────────────────────────────────────────────────────────
-router.delete('/:id', protect, async (req, res) => {
-  try {
-    const tool = await Tool.findOneAndDelete({ _id: req.params.id, createdBy: req.user._id });
-    if (!tool) return res.status(404).json({ success: false, message: 'Tool not found or not yours' });
-    res.json({ success: true, message: 'Tool deleted' });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
-  }
-});
+router.delete('/:id', protect, asyncHandler(async (req, res) => {
+  const tool = await Tool.findOneAndDelete({ _id: req.params.id, createdBy: req.user._id });
+  if (!tool) return error(res, 'Tool not found or not yours', 404);
+  success(res, { message: 'Tool deleted' });
+}));
 
 module.exports = router;
